@@ -1,0 +1,25 @@
+### Get the schema
+// Our server works with the following GraphQL schema
+GET http://localhost:8080/graphql
+
+### Simple Query
+GRAPHQL http://localhost:8080/graphql
+
+{
+  greeting(name: "George") {
+    Greeting
+  }
+}
+
+### Variable Example
+GRAPHQL http://localhost:8080/graphql
+
+query greeting($name: String!) {
+  greeting(name: $name) {
+    Greeting
+  }
+}
+
+{
+  "name": "George"
+}
