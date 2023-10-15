@@ -4,25 +4,22 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/gburgyan/go-quickgraph"
+	"github.com/gburgyan/go-quickgraph-sample/handlers"
 	"github.com/gin-gonic/gin"
+	"github.com/patrickmn/go-cache"
+	"time"
 )
-
-type GreetingResponse struct {
-	Greeting string
-}
-
-func Greeting(name string) GreetingResponse {
-	return GreetingResponse{
-		Greeting: "Hello, " + name,
-	}
-}
 
 func main() {
 	server := gin.Default()
 	graph := quickgraph.Graphy{}
 	ctx := context.Background()
 
-	graph.RegisterProcessorWithParamNames(ctx, "greeting", Greeting, "name")
+	graph.RegisterProcessorWithParamNames(ctx, "greeting", handlers.Greeting, "name")
+
+	graph.RequestCache = &SimpleGraphRequestCache{
+		cache: cache.New(5*time.Minute, 10*time.Minute),
+	}
 
 	type graphqlRequest struct {
 		Query     string          `json:"query"`
@@ -58,5 +55,4 @@ func main() {
 	})
 
 	server.Run()
-
 }
