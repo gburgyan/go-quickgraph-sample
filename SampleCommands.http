@@ -1,5 +1,4 @@
 ### Get the schema
-// Our server works with the following GraphQL schema
 GET http://localhost:8080/graphql
 
 ### Simple Query

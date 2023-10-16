@@ -62,23 +62,17 @@ func GetWidgets() ([]Widget, error) {
 	return widgets, nil
 }
 
-func CreateWidget(widget *Widget) (Widget, error) {
-	if widget == nil {
-		return Widget{}, errors.New("widget is nil")
-	}
+func CreateWidget(widget Widget) (Widget, error) {
 	widget.ID = len(widgets) + 1
-	widgets = append(widgets, *widget)
-	return *widget, nil
+	widgets = append(widgets, widget)
+	return widget, nil
 }
 
-func UpdateWidget(widget *Widget) (Widget, error) {
-	if widget == nil {
-		return Widget{}, errors.New("widget is nil")
-	}
+func UpdateWidget(widget Widget) (Widget, error) {
 	for i, w := range widgets {
 		if w.ID == widget.ID {
-			widgets[i] = *widget
-			return *widget, nil
+			widgets[i] = widget
+			return widget, nil
 		}
 	}
 	return Widget{}, errors.New("widget not found")

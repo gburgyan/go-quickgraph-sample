@@ -5,8 +5,8 @@ type Query {
 }
 
 type Mutation {
-    CreateWidget(widget: WidgetInput): Widget!
-    UpdateWidget(widget: WidgetInput): Widget!
+    CreateWidget(widget: WidgetInput!): Widget!
+    UpdateWidget(widget: WidgetInput!): Widget!
 }
 
 input WidgetInput {
