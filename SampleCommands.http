@@ -23,3 +23,35 @@ query greeting($name: String!) {
 {
   "name": "George"
 }
+
+### Get Widgets
+GRAPHQL http://localhost:8080/graphql
+
+query GetWidgets {
+  GetWidgets {
+    id
+    name
+    price
+    quantity
+  }
+}
+
+### Add Widget
+GRAPHQL http://localhost:8080/graphql
+
+mutation AddWidget($widget: IWidget!) {
+  CreateWidget(widget: $widget) {
+    id
+    name
+    price
+    quantity
+  }
+}
+
+{
+  "widget": {
+    "name": "Widget 1",
+    "price": 1.99,
+    "quantity": 10
+  }
+}

@@ -17,6 +17,11 @@ func main() {
 
 	graph.RegisterProcessorWithParamNames(ctx, "greeting", handlers.Greeting, "name")
 
+	defs := handlers.FunctionDefinitions()
+	for _, def := range defs {
+		graph.RegisterFunction(ctx, def)
+	}
+
 	graph.RequestCache = &SimpleGraphRequestCache{
 		cache: cache.New(5*time.Minute, 10*time.Minute),
 	}

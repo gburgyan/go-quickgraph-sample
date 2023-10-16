@@ -1,5 +1,26 @@
 type Query {
+    GetWidget(id: Int!): Widget!
+    GetWidgets(): [Widget!]!
     greeting(name: String!): GreetingResponse!
+}
+
+type Mutation {
+    CreateWidget(widget: IWidget): Widget!
+    UpdateWidget(widget: IWidget): Widget!
+}
+
+input IWidget {
+    id: Int!
+    name: String!
+    price: Float!
+    quantity: Int!
+}
+
+type Widget {
+    id: Int!
+    name: String!
+    price: Float!
+    quantity: Int!
 }
 
 type GreetingResponse {
