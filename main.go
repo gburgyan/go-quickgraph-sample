@@ -17,7 +17,7 @@ func main() {
 
 	graph.RegisterProcessorWithParamNames(ctx, "greeting", handlers.Greeting, "name")
 
-	defs := handlers.FunctionDefinitions()
+	defs := handlers.WidgetDefinitions()
 	for _, def := range defs {
 		graph.RegisterFunction(ctx, def)
 	}

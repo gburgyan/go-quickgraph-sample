@@ -21,7 +21,7 @@ var widgets = []Widget{
 	},
 }
 
-func FunctionDefinitions() []quickgraph.FunctionDefinition {
+func WidgetDefinitions() []quickgraph.FunctionDefinition {
 	return []quickgraph.FunctionDefinition{
 		{
 			Name:           "GetWidget",

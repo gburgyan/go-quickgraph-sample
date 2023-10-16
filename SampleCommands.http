@@ -36,6 +36,22 @@ query GetWidgets {
   }
 }
 
+### Get a specific widget
+GRAPHQL http://localhost:8080/graphql
+
+query GetWidget($id: ID!) {
+  GetWidget(id: $id) {
+    id
+    name
+    price
+    quantity
+  }
+}
+
+{
+  "id": 1
+}
+
 ### Add Widget
 GRAPHQL http://localhost:8080/graphql
 
@@ -50,8 +66,29 @@ mutation AddWidget($widget: WidgetInput!) {
 
 {
   "widget": {
-    "name": "Widget 1",
-    "price": 1.99,
+    "name": "Widget 42",
+    "price": 69.23,
     "quantity": 10
+  }
+}
+
+### Update Widget
+GRAPHQL http://localhost:8080/graphql
+
+mutation UpdateWidget($widget: WidgetInput!) {
+  UpdateWidget(widget: $widget) {
+    id
+    name
+    price
+    quantity
+  }
+}
+
+{
+  "widget": {
+    "id": 1,
+    "name": "Widget 42",
+    "price": 69.23,
+    "quantity": 105
   }
 }
