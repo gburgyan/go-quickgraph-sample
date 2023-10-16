@@ -39,7 +39,7 @@ query GetWidgets {
 ### Add Widget
 GRAPHQL http://localhost:8080/graphql
 
-mutation AddWidget($widget: IWidget!) {
+mutation AddWidget($widget: WidgetInput!) {
   CreateWidget(widget: $widget) {
     id
     name
