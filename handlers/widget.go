@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"errors"
 	"github.com/gburgyan/go-quickgraph"
 )
@@ -21,32 +22,11 @@ var widgets = []Widget{
 	},
 }
 
-func WidgetDefinitions() []quickgraph.FunctionDefinition {
-	return []quickgraph.FunctionDefinition{
-		{
-			Name:           "GetWidget",
-			Function:       GetWidget,
-			Mode:           quickgraph.ModeQuery,
-			ParameterNames: []string{"id"},
-		},
-		{
-			Name:     "GetWidgets",
-			Function: GetWidgets,
-			Mode:     quickgraph.ModeQuery,
-		},
-		{
-			Name:           "CreateWidget",
-			Function:       CreateWidget,
-			Mode:           quickgraph.ModeMutation,
-			ParameterNames: []string{"widget"},
-		},
-		{
-			Name:           "UpdateWidget",
-			Function:       UpdateWidget,
-			Mode:           quickgraph.ModeMutation,
-			ParameterNames: []string{"widget"},
-		},
-	}
+func RegisterWidgetHandlers(ctx context.Context, graphy *quickgraph.Graphy) {
+	graphy.RegisterQuery(ctx, "GetWidget", GetWidget, "id")
+	graphy.RegisterQuery(ctx, "GetWidgets", GetWidgets)
+	graphy.RegisterMutation(ctx, "CreateWidget", CreateWidget, "widget")
+	graphy.RegisterMutation(ctx, "UpdateWidget", UpdateWidget, "widget")
 }
 
 func GetWidget(id int) (Widget, error) {

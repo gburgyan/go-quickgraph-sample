@@ -91,3 +91,24 @@ mutation UpdateWidget($widget: WidgetInput!) {
     "quantity": 105
   }
 }
+
+### Update Widget - Error case (note the id)
+GRAPHQL http://localhost:8080/graphql
+
+mutation UpdateWidget($widget: WidgetInput!) {
+  UpdateWidget(widget: $widget) {
+    id
+    name
+    price
+    quantity
+  }
+}
+
+{
+  "widget": {
+    "id": -1,
+    "name": "Widget 42",
+    "price": 2.50,
+    "quantity": 5
+  }
+}

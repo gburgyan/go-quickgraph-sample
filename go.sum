@@ -20,6 +20,8 @@ github.com/gburgyan/go-quickgraph v0.3.1 h1:t84QPkZhqNkpUgYKuJL9yy66ouG8RpkADhrZ
 github.com/gburgyan/go-quickgraph v0.3.1/go.mod h1:LGBVfNFsKDvcUH4ZQpKMSJEYPbJkjZQFNBnvi4kE8Ws=
 github.com/gburgyan/go-quickgraph v0.3.2 h1:GqlX+oDUDw7+oLS4EEzNqBquwViJa8EOYivUmhINNJQ=
 github.com/gburgyan/go-quickgraph v0.3.2/go.mod h1:LGBVfNFsKDvcUH4ZQpKMSJEYPbJkjZQFNBnvi4kE8Ws=
+github.com/gburgyan/go-quickgraph v0.4.0 h1:T1bpElc+YswXoG5cm2qzD+8pj6ydjKVFwix+yVkhRi4=
+github.com/gburgyan/go-quickgraph v0.4.0/go.mod h1:LGBVfNFsKDvcUH4ZQpKMSJEYPbJkjZQFNBnvi4kE8Ws=
 github.com/gin-contrib/sse v0.1.0 h1:Y/yl/+YNO8GZSjAhjMsSuLt29uWRFHdHYUb5lYOV9qE=
 github.com/gin-contrib/sse v0.1.0/go.mod h1:RHrZQHXnP2xjPF+u1gW/2HnVO7nvIa9PG3Gm+fLHvGI=
 github.com/gin-gonic/gin v1.9.1 h1:4idEAncQnU5cB7BeOkPtxjfCSye0AAm1R0RVIqJ+Jmg=

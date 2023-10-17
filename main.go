@@ -15,12 +15,9 @@ func main() {
 	graph := quickgraph.Graphy{}
 	ctx := context.Background()
 
-	graph.RegisterProcessorWithParamNames(ctx, "greeting", handlers.Greeting, "name")
+	graph.RegisterQuery(ctx, "greeting", handlers.Greeting, "name")
 
-	defs := handlers.WidgetDefinitions()
-	for _, def := range defs {
-		graph.RegisterFunction(ctx, def)
-	}
+	handlers.RegisterWidgetHandlers(ctx, &graph)
 
 	graph.RequestCache = &SimpleGraphRequestCache{
 		cache: cache.New(5*time.Minute, 10*time.Minute),
