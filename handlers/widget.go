@@ -49,6 +49,9 @@ func CreateWidget(widget Widget) (Widget, error) {
 }
 
 func UpdateWidget(widget Widget) (Widget, error) {
+	if widget.Quantity < 0 {
+		return Widget{}, errors.New("quantity cannot be negative")
+	}
 	for i, w := range widgets {
 		if w.ID == widget.ID {
 			widgets[i] = widget
