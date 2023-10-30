@@ -3,7 +3,7 @@ module github.com/gburgyan/go-quickgraph-sample
 go 1.20
 
 require (
-	github.com/gburgyan/go-quickgraph v0.5.0
+	github.com/gburgyan/go-quickgraph v0.6.2
 	github.com/gin-gonic/gin v1.9.1
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 )

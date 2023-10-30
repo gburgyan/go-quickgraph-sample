@@ -34,13 +34,7 @@ func exampleGinServer(ctx context.Context, graph *quickgraph.Graphy) {
 		c.String(200, res)
 	})
 	server.GET("/graphql", func(c *gin.Context) {
-		schema, err := graph.SchemaDefinition(ctx)
-		if err != nil {
-			c.JSON(500, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
+		schema := graph.SchemaDefinition(ctx)
 		c.String(200, schema)
 	})
 
