@@ -2,6 +2,10 @@ module github.com/gburgyan/go-quickgraph-sample
 
 go 1.20
 
+replace (
+	github.com/gburgyan/go-quickgraph v0.6.2 => ../go-quickgraph
+)
+
 require (
 	github.com/gburgyan/go-quickgraph v0.6.2
 	github.com/gin-gonic/gin v1.9.1

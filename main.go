@@ -18,6 +18,8 @@ func main() {
 
 	handlers.RegisterWidgetHandlers(ctx, &graph)
 
+	graph.EnableIntrospection(ctx)
+
 	// Optional: Set a cache for the graph.
 	graph.RequestCache = &SimpleGraphRequestCache{
 		cache: cache.New(5*time.Minute, 10*time.Minute),
