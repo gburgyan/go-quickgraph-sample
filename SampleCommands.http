@@ -112,3 +112,37 @@ mutation UpdateWidget($widget: WidgetInput!) {
     "quantity": 5
   }
 }
+
+### Get Schema
+GRAPHQL http://localhost:8080/graphql
+
+query IntrospectionQuery {
+  __schema {
+    queryType {
+      name
+      fields {
+        name
+      }
+      inputFields {
+        name
+      }
+    }
+    mutationType {
+      name
+      fields {
+        name
+      }
+    }
+    types {
+      name
+      kind
+      fields {
+        name
+        type {
+          name
+          kind
+        }
+      }
+    }
+  }
+}
