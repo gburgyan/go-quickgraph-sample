@@ -13,7 +13,8 @@ func main() {
 
 	ctx := context.Background()
 
-	graph := quickgraph.Graphy{}
+	graph := quickgraph.Graphy{EnableTiming: true}
+
 	graph.RegisterQuery(ctx, "greeting", handlers.Greeting, "name")
 
 	handlers.RegisterWidgetHandlers(ctx, &graph)

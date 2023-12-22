@@ -3,16 +3,17 @@ module github.com/gburgyan/go-quickgraph-sample
 go 1.20
 
 require (
-	github.com/gburgyan/go-quickgraph v0.7.0
+	github.com/gburgyan/go-quickgraph v0.7.2
 	github.com/gin-gonic/gin v1.9.1
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 )
 
 require (
-	github.com/alecthomas/participle/v2 v2.0.0 // indirect
+	github.com/alecthomas/participle/v2 v2.1.1 // indirect
 	github.com/bytedance/sonic v1.9.1 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
+	github.com/gburgyan/go-timing v0.7.6 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
