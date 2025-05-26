@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/gburgyan/go-quickgraph"
+	"sync"
 )
 
 type Widget struct {
@@ -13,14 +14,17 @@ type Widget struct {
 	Quantity int     `json:"quantity"`
 }
 
-var widgets = []Widget{
-	{
-		ID:       1,
-		Name:     "Widget 1",
-		Price:    1.00,
-		Quantity: 10,
-	},
-}
+var (
+	widgets = []Widget{
+		{
+			ID:       1,
+			Name:     "Widget 1",
+			Price:    1.00,
+			Quantity: 10,
+		},
+	}
+	widgetsMux sync.RWMutex
+)
 
 func RegisterWidgetHandlers(ctx context.Context, graphy *quickgraph.Graphy) {
 	graphy.RegisterQuery(ctx, "GetWidget", GetWidget, "id")
@@ -30,6 +34,9 @@ func RegisterWidgetHandlers(ctx context.Context, graphy *quickgraph.Graphy) {
 }
 
 func GetWidget(id int) (Widget, error) {
+	widgetsMux.RLock()
+	defer widgetsMux.RUnlock()
+	
 	for _, widget := range widgets {
 		if widget.ID == id {
 			return widget, nil
@@ -39,12 +46,24 @@ func GetWidget(id int) (Widget, error) {
 }
 
 func GetWidgets() ([]Widget, error) {
-	return widgets, nil
+	widgetsMux.RLock()
+	defer widgetsMux.RUnlock()
+	
+	result := make([]Widget, len(widgets))
+	copy(result, widgets)
+	return result, nil
 }
 
 func CreateWidget(widget Widget) (Widget, error) {
+	widgetsMux.Lock()
+	defer widgetsMux.Unlock()
+	
 	widget.ID = len(widgets) + 1
 	widgets = append(widgets, widget)
+	
+	// Broadcast the widget creation
+	BroadcastWidgetUpdate(widget, "created")
+	
 	return widget, nil
 }
 
@@ -52,9 +71,17 @@ func UpdateWidget(widget Widget) (Widget, error) {
 	if widget.Quantity < 0 {
 		return Widget{}, errors.New("quantity cannot be negative")
 	}
+	
+	widgetsMux.Lock()
+	defer widgetsMux.Unlock()
+	
 	for i, w := range widgets {
 		if w.ID == widget.ID {
 			widgets[i] = widget
+			
+			// Broadcast the widget update
+			BroadcastWidgetUpdate(widget, "updated")
+			
 			return widget, nil
 		}
 	}

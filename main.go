@@ -1,34 +1,35 @@
 package main
 
 import (
-	"context"
-	"github.com/gburgyan/go-quickgraph"
-	"github.com/gburgyan/go-quickgraph-sample/handlers"
-	"github.com/patrickmn/go-cache"
-	"net/http"
-	"time"
+	"fmt"
+	"os"
 )
 
 func main() {
-
-	ctx := context.Background()
-
-	graph := quickgraph.Graphy{EnableTiming: true}
-
-	graph.RegisterQuery(ctx, "greeting", handlers.Greeting, "name")
-
-	handlers.RegisterWidgetHandlers(ctx, &graph)
-
-	graph.EnableIntrospection(ctx)
-
-	// Optional: Set a cache for the graph.
-	graph.RequestCache = &SimpleGraphRequestCache{
-		cache: cache.New(5*time.Minute, 10*time.Minute),
-	}
-
-	http.Handle("/graphql", graph.HttpHandler())
-	err := http.ListenAndServe(":8080", nil)
-	if err != nil {
-		panic(err)
+	fmt.Println("go-quickgraph-sample")
+	fmt.Println("====================")
+	fmt.Println()
+	fmt.Println("This project contains multiple examples. Run them with:")
+	fmt.Println()
+	fmt.Println("  # Main GraphQL server (port 8080)")
+	fmt.Println("  go run ./cmd/server")
+	fmt.Println()
+	fmt.Println("  # Gin-based GraphQL server (port 8081)")
+	fmt.Println("  go run ./cmd/gin-server")
+	fmt.Println()
+	fmt.Println("  # WebSocket subscription client")
+	fmt.Println("  go run ./cmd/subscription-client")
+	fmt.Println()
+	fmt.Println("  # Trigger events for subscriptions")
+	fmt.Println("  go run ./cmd/trigger-events")
+	fmt.Println()
+	fmt.Println("Or build all examples:")
+	fmt.Println("  go build ./...")
+	fmt.Println()
+	
+	if len(os.Args) > 1 && os.Args[1] == "--help" {
+		fmt.Println("For more information, see README.md and SUBSCRIPTIONS.md")
+	} else {
+		fmt.Println("Run with --help for more information")
 	}
 }

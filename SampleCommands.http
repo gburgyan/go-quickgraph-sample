@@ -5,18 +5,18 @@ GET http://localhost:8080/graphql
 GRAPHQL http://localhost:8080/graphql
 
 {
-  greeting(name: "George") {
-    Greeting
-  }
+    greeting(name: "George") {
+        Greeting
+    }
 }
 
 ### Variable Example
 GRAPHQL http://localhost:8080/graphql
 
 query greeting($name: String!) {
-  greeting(name: $name) {
-    Greeting
-  }
+    greeting(name: $name) {
+        Greeting
+    }
 }
 
 {
@@ -27,24 +27,24 @@ query greeting($name: String!) {
 GRAPHQL http://localhost:8080/graphql
 
 query GetWidgets {
-  GetWidgets {
-    id
-    name
-    price
-    quantity
-  }
+    GetWidgets {
+        id
+        name
+        price
+        quantity
+    }
 }
 
 ### Get a specific widget
 GRAPHQL http://localhost:8080/graphql
 
 query GetWidget($id: ID!) {
-  GetWidget(id: $id) {
-    id
-    name
-    price
-    quantity
-  }
+    GetWidget(id: $id) {
+        id
+        name
+        price
+        quantity
+    }
 }
 
 {
@@ -55,12 +55,12 @@ query GetWidget($id: ID!) {
 GRAPHQL http://localhost:8080/graphql
 
 mutation AddWidget($widget: WidgetInput!) {
-  CreateWidget(widget: $widget) {
-    id
-    name
-    price
-    quantity
-  }
+    CreateWidget(widget: $widget) {
+        id
+        name
+        price
+        quantity
+    }
 }
 
 {
@@ -75,12 +75,12 @@ mutation AddWidget($widget: WidgetInput!) {
 GRAPHQL http://localhost:8080/graphql
 
 mutation UpdateWidget($widget: WidgetInput!) {
-  UpdateWidget(widget: $widget) {
-    id
-    name
-    price
-    quantity
-  }
+    UpdateWidget(widget: $widget) {
+        id
+        name
+        price
+        quantity
+    }
 }
 
 {
@@ -96,12 +96,12 @@ mutation UpdateWidget($widget: WidgetInput!) {
 GRAPHQL http://localhost:8080/graphql
 
 mutation UpdateWidget($widget: WidgetInput!) {
-  UpdateWidget(widget: $widget) {
-    id
-    name
-    price
-    quantity
-  }
+    UpdateWidget(widget: $widget) {
+        id
+        name
+        price
+        quantity
+    }
 }
 
 {
@@ -117,32 +117,593 @@ mutation UpdateWidget($widget: WidgetInput!) {
 GRAPHQL http://localhost:8080/graphql
 
 query IntrospectionQuery {
-  __schema {
-    queryType {
-      name
-      fields {
-        name
-      }
-      inputFields {
-        name
-      }
-    }
-    mutationType {
-      name
-      fields {
-        name
-      }
-    }
-    types {
-      name
-      kind
-      fields {
-        name
-        type {
-          name
-          kind
+    __schema {
+        queryType {
+            name
+            fields {
+                name
+            }
+            inputFields {
+                name
+            }
         }
-      }
+        mutationType {
+            name
+            fields {
+                name
+            }
+        }
+        types {
+            name
+            kind
+            fields {
+                name
+                type {
+                    name
+                    kind
+                }
+            }
+        }
     }
+}
+
+### Get All Employees (Interface Example)
+GRAPHQL http://localhost:8080/graphql
+
+query GetAllEmployees {
+    GetAllEmployees {
+        ... on Developer {
+            id
+            name
+            email
+            salary
+            hireDate
+            programmingLanguages
+            githubUsername
+        }
+        ... on Manager {
+            id
+            name
+            email
+            salary
+            hireDate
+            department
+            teamSize
+            reports {
+                ... on Developer {
+                    name
+                    programmingLanguages
+                }
+            }
+        }
+    }
+}
+
+### Get Specific Employee
+GRAPHQL http://localhost:8080/graphql
+
+query GetEmployee($id: Int!) {
+    GetEmployee(id: $id) {
+        ... on Developer {
+            id
+            name
+            email
+            programmingLanguages
+            githubUsername
+        }
+        ... on Manager {
+            id
+            name
+            department
+            teamSize
+        }
+    }
+}
+
+{
+  "id": 2
+}
+
+### Create Employee (Developer)
+GRAPHQL http://localhost:8080/graphql
+
+mutation CreateDeveloper {
+    CreateEmployee(input: {
+        name: "Alice Developer"
+        email: "alice@example.com"
+        salary: 95000
+        type: DEVELOPER
+        programmingLanguages: ["Go", "TypeScript", "Python"]
+        githubUsername: "alice-dev"
+    }) {
+        ... on Developer {
+            id
+            name
+            email
+            programmingLanguages
+            githubUsername
+        }
+    }
+}
+
+### Create Employee (Manager)
+GRAPHQL http://localhost:8080/graphql
+
+mutation CreateManager {
+    CreateEmployee(input: {
+        name: "Bob Manager"
+        email: "bob@example.com"
+        salary: 130000
+        type: MANAGER
+        department: "Product"
+    }) {
+        ... on Manager {
+            id
+            name
+            email
+            department
+            teamSize
+        }
+    }
+}
+
+### Promote Developer to Manager
+GRAPHQL http://localhost:8080/graphql
+
+mutation PromoteToManager($employeeId: Int!, $department: String!) {
+    PromoteToManager(employeeId: $employeeId, department: $department) {
+        id
+        name
+        email
+        salary
+        department
+        teamSize
+    }
+}
+
+{
+  "employeeId": 3,
+  "department": "DevOps"
+}
+
+### Search (Union Type Example)
+GRAPHQL http://localhost:8080/graphql
+
+query Search($query: String!) {
+    Search(query: $query) {
+        __typename
+        ... on Widget {
+            id
+            name
+            price
+        }
+        ... on Product {
+            id
+            name
+            description
+            price
+        }
+        ... on Developer {
+            name
+            email
+            programmingLanguages
+        }
+        ... on Manager {
+            name
+            email
+            department
+        }
+    }
+}
+
+{
+  "query": "laptop"
+}
+
+### Get Products with Complex Nested Queries
+GRAPHQL http://localhost:8080/graphql
+
+query GetProducts {
+    GetProducts(filter: {
+        minPrice: 20
+        maxPrice: 1000
+        status: ACTIVE
+        inStock: true
+    }) {
+        id
+        name
+        description
+        price
+        status
+        inStock
+        category {
+            id
+            name
+            description
+        }
+        reviews {
+            id
+            rating
+            comment
+            createdAt
+            user {
+                username
+                role
+            }
+        }
+        averageRating
+    }
+}
+
+### Get Categories with Products
+GRAPHQL http://localhost:8080/graphql
+
+query GetCategories {
+    GetCategories {
+        id
+        name
+        description
+        products {
+            id
+            name
+            price
+            status
+            inStock
+        }
+    }
+}
+
+### Create Product
+GRAPHQL http://localhost:8080/graphql
+
+mutation CreateProduct {
+    CreateProduct(input: {
+        name: "Gaming Mouse"
+        description: "High-precision gaming mouse with RGB"
+        price: 79.99
+        categoryId: 1
+    }) {
+        id
+        name
+        description
+        price
+        status
+        category {
+            name
+        }
+    }
+}
+
+### Update Product Status (Enum Example)
+GRAPHQL http://localhost:8080/graphql
+
+mutation UpdateStatus($id: Int!, $status: ProductStatus!) {
+    UpdateProductStatus(id: $id, status: $status) {
+        id
+        name
+        status
+        inStock
+    }
+}
+
+{
+  "id": 1,
+  "status": "ACTIVE"
+}
+
+### Add Product Review
+GRAPHQL http://localhost:8080/graphql
+
+mutation AddReview($productId: Int!, $review: ReviewInput!) {
+    AddProductReview(productId: $productId, review: $review) {
+        id
+        rating
+        comment
+        createdAt
+        user {
+            username
+        }
+    }
+}
+
+{
+  "productId": 1,
+  "review": {
+    "rating": 5,
+    "comment": "Amazing laptop, highly recommend!"
   }
+}
+
+### Get Current User (Context Example)
+GRAPHQL http://localhost:8080/graphql
+Authorization: Bearer admin-token
+
+query GetCurrentUser {
+    GetCurrentUser {
+        id
+        username
+        email
+        role
+    }
+}
+
+### Get Current User (Not Authenticated)
+GRAPHQL http://localhost:8080/graphql
+
+query GetCurrentUser {
+    GetCurrentUser {
+        id
+        username
+        email
+        role
+    }
+}
+
+### Complex Query with Multiple Features
+GRAPHQL http://localhost:8080/graphql
+
+query ComplexQuery {
+    GetWidgets {
+        id
+        name
+        price
+    }
+    GetManagers {
+        name
+        department
+        reports {
+            ... on Developer {
+                name
+                programmingLanguages
+            }
+        }
+    }
+    GetProducts(filter: { status: ACTIVE }) {
+        name
+        price
+        reviews {
+            rating
+        }
+        averageRating
+    }
+    Search(query: "go") {
+        __typename
+        ... on Product {
+            name
+            price
+        }
+        ... on Developer {
+            name
+            programmingLanguages
+        }
+    }
+}
+
+
+### Complex Query with Multiple Features
+GRAPHQL http://localhost:8080/graphql
+
+{
+    GetAllEmployees {
+        ... on Developer {
+            id
+            name
+            personalDetails {
+                salary
+                email
+                phoneNumber
+                address
+            }
+        }
+        ... on Manager {
+            id
+            name
+            personalDetails {
+                salary
+                email
+                phoneNumber
+                address
+            }
+        }
+    }
+}
+
+
+### Complex Query with menthods on interfaces
+GRAPHQL http://localhost:8080/graphql
+
+{
+    GetAllEmployees {
+        ... on Developer {
+            id
+            name
+            email
+            salary
+            hireDate
+            personalDetails {
+                salary
+                email
+                phoneNumber
+                address
+            }
+        }
+        ... on Manager {
+            id
+            name
+            email
+            salary
+            hireDate
+            department
+            teamSize
+            personalDetails {
+                salary
+                email
+                phoneNumber
+                address
+            }
+        }
+    }
+}
+
+### ========================================
+### SUBSCRIPTION EXAMPLES
+### ========================================
+### Note: These are subscription queries that need to be run over WebSocket
+### You can test them using:
+### 1. The subscription_client.html file (open in browser)
+### 2. The subscription_client_example.go (go run subscription_client_example.go)
+### 3. Any GraphQL client that supports subscriptions (e.g., GraphiQL, Playground)
+
+### Subscribe to Current Time
+# This subscription emits the current time at specified intervals
+subscription CurrentTime {
+    currentTime(intervalMs: 1000) {
+        timestamp
+        formatted
+    }
+}
+
+### Subscribe to All Product Updates
+# This subscription notifies about any product creation, update, or deletion
+subscription ProductUpdates {
+    productUpdates {
+        product {
+            id
+            name
+            price
+            status
+            category {
+                name
+            }
+        }
+        action
+        timestamp
+    }
+}
+
+### Subscribe to Product Updates by Category
+# This subscription filters product updates by category
+subscription ProductUpdatesByCategory($categoryId: Int\!) {
+    productUpdatesByCategory(categoryId: $categoryId) {
+        product {
+            id
+            name
+            price
+            status
+        }
+        action
+        timestamp
+    }
+}
+
+# Variables:
+{
+  "categoryId": 1
+}
+
+### Subscribe to Widget Updates
+# Monitor all widget changes or filter by specific widget ID
+subscription WidgetUpdates($widgetId: Int) {
+    widgetUpdates(widgetId: $widgetId) {
+        widget {
+            id
+            name
+            price
+            quantity
+        }
+        action
+        timestamp
+    }
+}
+
+# Variables (optional - omit to get all widget updates):
+{
+  "widgetId": 1
+}
+
+### Subscribe to Order Status Updates
+# Track the status of a specific order as it progresses
+subscription OrderStatus($orderId: String\!) {
+    orderStatusUpdates(orderId: $orderId) {
+        orderId
+        status
+        message
+        timestamp
+    }
+}
+
+# Variables:
+{
+  "orderId": "order-123"
+}
+
+### ========================================
+### MUTATIONS TO TRIGGER SUBSCRIPTION EVENTS
+### ========================================
+### Use these mutations to trigger events that subscriptions will receive
+
+### Create Product (triggers productUpdates)
+GRAPHQL http://localhost:8080/graphql
+
+mutation CreateProductForSubscription {
+    CreateProduct(input: {
+        name: "Subscription Test Product"
+        description: "This product will trigger subscription events"
+        price: 199.99
+        categoryId: 1
+    }) {
+        id
+        name
+        status
+    }
+}
+
+### Update Product Status (triggers productUpdates)
+GRAPHQL http://localhost:8080/graphql
+
+mutation UpdateProductForSubscription($id: Int\!) {
+    UpdateProductStatus(id: $id, status: ACTIVE) {
+        id
+        name
+        status
+    }
+}
+
+{
+  "id": 5
+}
+
+### Create Widget (triggers widgetUpdates)
+GRAPHQL http://localhost:8080/graphql
+
+mutation CreateWidgetForSubscription {
+    CreateWidget(widget: {
+        name: "Subscription Test Widget"
+        price: 99.99
+        quantity: 50
+    }) {
+        id
+        name
+        quantity
+    }
+}
+
+### Update Widget (triggers widgetUpdates)
+GRAPHQL http://localhost:8080/graphql
+
+mutation UpdateWidgetForSubscription($id: Int\!) {
+    UpdateWidget(widget: {
+        id: $id
+        name: "Updated Subscription Widget"
+        price: 109.99
+        quantity: 75
+    }) {
+        id
+        name
+        quantity
+    }
+}
+
+{
+  "id": 2
 }

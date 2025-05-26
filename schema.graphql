@@ -1,12 +1,73 @@
+type Subscription {
+    currentTime(intervalMs: Int!): TimeUpdate!
+    orderStatusUpdates(orderId: String!): OrderUpdate!
+    productUpdates: ProductUpdate!
+    productUpdatesByCategory(categoryId: Int!): ProductUpdate!
+    widgetUpdates(widgetId: Int): WidgetUpdate!
+}
+
 type Query {
+    GetAllEmployees: [Employee!]!
+    GetCategories: [Category!]!
+    GetCurrentUser: User
+    GetEmployee(id: Int!): Employee!
+    GetManagers: [Manager]!
+    GetProduct(id: Int!): Product
+    GetProducts(filter: ProductFilter): [Product!]!
     GetWidget(id: Int!): Widget!
     GetWidgets: [Widget!]!
+    Search(query: String!): [SearchResult!]!
     greeting(name: String!): GreetingResponse!
 }
 
 type Mutation {
+    AddProductReview(productId: Int!, review: ReviewInput!): Review
+    CreateEmployee(input: EmployeeInput!): Employee!
+    CreateProduct(input: ProductInput!): Product
     CreateWidget(widget: WidgetInput!): Widget!
+    PromoteToManager(employeeId: Int!, department: String!): Manager
+    UpdateProductStatus(id: Int!, status: String!): Product
     UpdateWidget(widget: WidgetInput!): Widget!
+}
+
+input EmployeeInput {
+    department: String
+    email: String!
+    githubUsername: String
+    name: String!
+    programmingLanguages: [String!]!
+    salary: Float!
+    type: String!
+}
+
+input LocationInput {
+    cacheEnd: Int!
+    cacheStart: Int!
+    cacheZone: zoneInput
+    extend: String!
+    name: String!
+    tx: [zoneTransInput!]!
+    zone: [zoneInput!]!
+}
+
+input ProductFilter {
+    categoryId: Int
+    inStock: Boolean
+    maxPrice: Float
+    minPrice: Float
+    status: String
+}
+
+input ProductInput {
+    categoryId: Int!
+    description: String!
+    name: String!
+    price: Float!
+}
+
+input ReviewInput {
+    comment: String!
+    rating: Int!
 }
 
 input WidgetInput {
@@ -16,8 +77,162 @@ input WidgetInput {
     quantity: Int!
 }
 
+input zoneInput {
+    isDST: Boolean!
+    name: String!
+    offset: Int!
+}
+
+input zoneTransInput {
+    index: Int!
+    isstd: Boolean!
+    isutc: Boolean!
+    when: Int!
+}
+
+type Category {
+    Description: String
+    ID: Int!
+    Name: String!
+    Products: [Product!]!
+}
+
+interface Employee {
+    Email: String!
+    HireDate: String!
+    ID: Int!
+    Name: String!
+    PersonalDetails: PersonalInfo
+    Salary: Float!
+}
+
 type GreetingResponse {
     Greeting: String!
+}
+
+type Location {
+    cacheEnd: Int!
+    cacheStart: Int!
+    cacheZone: zone
+    extend: String!
+    name: String!
+    String: String!
+    tx: [zoneTrans!]!
+    zone: [zone!]!
+}
+
+type Manager implements Employee {
+    Department: String!
+    Email: String!
+    HireDate: String!
+    ID: Int!
+    Name: String!
+    PersonalDetails: PersonalInfo
+    Reports: [Employee!]!
+    Salary: Float!
+    TeamSize: Int!
+}
+
+type OrderUpdate {
+    message: String!
+    orderId: String!
+    status: String!
+    timestamp: Time!
+}
+
+type PersonalInfo {
+    address: String!
+    email: String!
+    phoneNumber: String!
+    salary: Float!
+}
+
+type Product {
+    AverageRating: Float
+    Category: Category
+    CategoryID: Int!
+    Description: String!
+    ID: Int!
+    InStock: Boolean!
+    Name: String!
+    Price: Float!
+    Reviews: [Review!]!
+    Status: String!
+}
+
+type ProductUpdate {
+    action: String!
+    product: Product!
+    timestamp: Time!
+}
+
+type Review {
+    Comment: String!
+    CreatedAt: String!
+    ID: Int!
+    ProductID: Int!
+    Rating: Int!
+    User: User
+    UserID: Int!
+}
+
+union SearchResult = Employee | Product | Widget
+
+type Time {
+    Add(arg1: Int!): Time!
+    AddDate(arg1: Int!, arg2: Int!, arg3: Int!): Time!
+    After(wall: Int!, ext: Int!, loc: LocationInput): Boolean!
+    AppendBinary(arg1: [Int!]!): [Int!]!
+    AppendFormat(arg1: [Int!]!, arg2: String!): [Int!]!
+    AppendText(arg1: [Int!]!): [Int!]!
+    Before(wall: Int!, ext: Int!, loc: LocationInput): Boolean!
+    Compare(wall: Int!, ext: Int!, loc: LocationInput): Int!
+    Day: Int!
+    Equal(wall: Int!, ext: Int!, loc: LocationInput): Boolean!
+    ext: Int!
+    Format(arg1: String!): String!
+    GobEncode: [Int!]!
+    GoString: String!
+    Hour: Int!
+    In(arg1: LocationInput): Time!
+    IsDST: Boolean!
+    IsZero: Boolean!
+    loc: Location
+    Local: Time!
+    Location: Location
+    MarshalBinary: [Int!]!
+    MarshalJSON: [Int!]!
+    MarshalText: [Int!]!
+    Minute: Int!
+    Month: Int!
+    Nanosecond: Int!
+    Round(arg1: Int!): Time!
+    Second: Int!
+    String: String!
+    Sub(wall: Int!, ext: Int!, loc: LocationInput): Int!
+    Truncate(arg1: Int!): Time!
+    Unix: Int!
+    UnixMicro: Int!
+    UnixMilli: Int!
+    UnixNano: Int!
+    UTC: Time!
+    wall: Int!
+    Weekday: Int!
+    Year: Int!
+    YearDay: Int!
+}
+
+type TimeUpdate {
+    formatted: String!
+    timestamp: Int!
+}
+
+type User {
+    Email: String!
+    ID: Int!
+    Reviews: [Review!]!
+    Role: String!
+    Username: String!
 }
 
 type Widget {
@@ -26,3 +241,24 @@ type Widget {
     price: Float!
     quantity: Int!
 }
+
+type WidgetUpdate {
+    action: String!
+    timestamp: Time!
+    widget: Widget!
+}
+
+type zone {
+    isDST: Boolean!
+    name: String!
+    offset: Int!
+}
+
+type zoneTrans {
+    index: Int!
+    isstd: Boolean!
+    isutc: Boolean!
+    when: Int!
+}
+
+
