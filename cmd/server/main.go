@@ -41,6 +41,10 @@ func main() {
 	handlers.RegisterAuthHandlers(ctx, &graph)
 	handlers.RegisterSubscriptionHandlers(ctx, &graph)
 
+	// Explicitly register types that aren't directly returned by any GraphQL function
+	// This ensures they appear in the schema and can be used in unions
+	graph.RegisterTypes(ctx, handlers.Employee{}, handlers.Developer{}, handlers.Manager{})
+
 	// Enable introspection
 	graph.EnableIntrospection(ctx)
 

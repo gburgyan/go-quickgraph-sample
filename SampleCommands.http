@@ -236,6 +236,7 @@ mutation CreateManager {
         salary: 130000
         type: MANAGER
         department: "Product"
+        programmingLanguages: ["Go"]
     }) {
         ... on Manager {
             id

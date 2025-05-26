@@ -108,11 +108,11 @@ func RegisterEmployeeHandlers(ctx context.Context, graphy *quickgraph.Graphy) {
 	graphy.RegisterQuery(ctx, "GetEmployee", GetEmployee, "id")
 	graphy.RegisterQuery(ctx, "GetAllEmployees", GetAllEmployees)
 	graphy.RegisterQuery(ctx, "GetManagers", GetManagers)
-	
+
 	// Mutation registrations
 	graphy.RegisterMutation(ctx, "CreateEmployee", CreateEmployee, "input")
 	graphy.RegisterMutation(ctx, "PromoteToManager", PromoteToManager, "employeeId", "department")
-	
+
 	// Note: The Reports() method on Manager will be automatically exposed as a field
 	// when a Manager object is returned from a query
 }
@@ -152,7 +152,7 @@ func GetAllEmployees() ([]Employee, error) {
 			result = append(result, e.Employee)
 		}
 	}
-	
+
 	return result, nil
 }
 
@@ -188,14 +188,14 @@ func (m *Manager) Reports() ([]Employee, error) {
 	return reports, nil
 }
 
-// CreateEmployee mutation
-func CreateEmployee(input EmployeeInput) (Employee, error) {
+// CreateEmployee mutation - returns multiple pointers (only one non-nil) for implicit union
+func CreateEmployee(input EmployeeInput) (*Developer, *Manager, error) {
 	// Validate input
 	if input.Type == EmployeeTypeDeveloper && len(input.ProgrammingLanguages) == 0 {
-		return Employee{}, errors.New("developers must have at least one programming language")
+		return nil, nil, errors.New("developers must have at least one programming language")
 	}
 	if input.Type == EmployeeTypeManager && (input.Department == nil || *input.Department == "") {
-		return Employee{}, errors.New("managers must have a department")
+		return nil, nil, errors.New("managers must have a department")
 	}
 
 	employeeMux.Lock()
@@ -210,26 +210,26 @@ func CreateEmployee(input EmployeeInput) (Employee, error) {
 	}
 	nextEmpID++
 
-	var newEmployee interface{}
 	switch input.Type {
 	case EmployeeTypeDeveloper:
-		newEmployee = &Developer{
+		dev := &Developer{
 			Employee:             emp,
 			ProgrammingLanguages: input.ProgrammingLanguages,
 			GithubUsername:       input.GithubUsername,
 		}
+		employees = append(employees, dev)
+		return dev, nil, nil
 	case EmployeeTypeManager:
-		newEmployee = &Manager{
+		mgr := &Manager{
 			Employee:   emp,
 			Department: *input.Department,
 			TeamSize:   0, // Start with no reports
 		}
+		employees = append(employees, mgr)
+		return nil, mgr, nil
 	default:
-		return Employee{}, fmt.Errorf("invalid employee type: %s", input.Type)
+		return nil, nil, fmt.Errorf("invalid employee type: %s", input.Type)
 	}
-
-	employees = append(employees, newEmployee)
-	return emp, nil
 }
 
 // PromoteToManager mutation - demonstrates type transformation
@@ -246,7 +246,7 @@ func PromoteToManager(employeeId int, department string) (*Manager, error) {
 				TeamSize:   0,
 			}
 			mgr.Salary *= 1.2 // 20% raise with promotion
-			
+
 			employees[i] = mgr
 			return mgr, nil
 		}
