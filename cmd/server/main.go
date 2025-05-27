@@ -22,12 +22,12 @@ func main() {
 
 	// Configure query limits for DoS protection
 	graph.QueryLimits = &quickgraph.QueryLimits{
-		MaxDepth:               10,   // Maximum query nesting depth
-		MaxFields:              100,  // Maximum fields per level
-		MaxAliases:             20,   // Prevent alias amplification attacks
-		MaxArraySize:           100,  // Limit array elements returned
-		MaxConcurrentResolvers: 50,   // Control parallel execution
-		MaxComplexity:          1000, // Overall query complexity score
+		MaxDepth:               0, // Maximum query nesting depth
+		MaxFields:              0, // Maximum fields per level
+		MaxAliases:             0, // Prevent alias amplification attacks
+		MaxArraySize:           0, // Limit array elements returned
+		MaxConcurrentResolvers: 0, // Control parallel execution
+		MaxComplexity:          0, // Overall query complexity score
 	}
 
 	// Register original handlers
@@ -57,7 +57,7 @@ func main() {
 		log.Println("Schema written to schema.graphql")
 	}
 
-	// Optional: Set a cache for parsed queries
+	// Set a cache for parsed queries
 	graph.RequestCache = &SimpleGraphRequestCache{
 		cache: cache.New(5*time.Minute, 10*time.Minute),
 	}
@@ -65,7 +65,7 @@ func main() {
 	// Create WebSocket upgrader
 	upgrader := NewGorillaUpgrader()
 
-	// Create HTTP handler with WebSocket support and authentication middleware
+	// Create HTTP handler with authentication middleware and WebSocket support
 	graphHandler := handlers.AuthMiddleware(graph.HttpHandlerWithWebSocket(upgrader))
 
 	http.Handle("/graphql", graphHandler)

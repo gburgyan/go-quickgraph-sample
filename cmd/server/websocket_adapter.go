@@ -38,12 +38,24 @@ func NewGorillaUpgrader() *GorillaWebSocketUpgrader {
 			},
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,
+			Subprotocols:    []string{"graphql-transport-ws"},
 		},
 	}
 }
 
 func (u *GorillaWebSocketUpgrader) Upgrade(w http.ResponseWriter, r *http.Request) (quickgraph.SimpleWebSocketConn, error) {
-	conn, err := u.upgrader.Upgrade(w, r, nil)
+	// Set the response header to include the negotiated subprotocol
+	responseHeader := http.Header{}
+	if websocket.Subprotocols(r) != nil {
+		for _, requestedProtocol := range websocket.Subprotocols(r) {
+			if requestedProtocol == "graphql-transport-ws" {
+				responseHeader.Set("Sec-WebSocket-Protocol", "graphql-transport-ws")
+				break
+			}
+		}
+	}
+
+	conn, err := u.upgrader.Upgrade(w, r, responseHeader)
 	if err != nil {
 		return nil, err
 	}
