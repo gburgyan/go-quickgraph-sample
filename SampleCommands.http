@@ -179,23 +179,59 @@ query GetAllEmployees {
     }
 }
 
-### Get Specific Employee
+### Get All Employees with Type Discovery (New Approach)
+# This demonstrates the new type discovery system - GetAllEmployees returns Employee interface
+# but we can discover the actual type (Developer or Manager) at runtime
 GRAPHQL http://localhost:8080/graphql
 
-query GetEmployee($id: Int!) {
-    GetEmployee(id: $id) {
+query GetAllEmployeesWithTypeDiscovery {
+    GetAllEmployees {
+        __typename
+        ID
+        Name
+        Email
+        Salary
+        HireDate
         ... on Developer {
-            id
-            name
-            email
-            programmingLanguages
-            githubUsername
+            ProgrammingLanguages
+            GithubUsername
         }
         ... on Manager {
-            id
-            name
-            department
-            teamSize
+            Department
+            TeamSize
+        }
+    }
+}
+
+### Get Specific Employee with Type Discovery
+# GetEmployee now returns Employee interface, actual type discoverable at runtime
+GRAPHQL http://localhost:8080/graphql
+
+query GetEmployeeWithTypeDiscovery($id: Int!) {
+    GetEmployee(id: $id) {
+        __typename
+        ID
+        Name
+        Email
+        Salary
+        HireDate
+        # Developer-specific fields
+        ... on Developer {
+            ProgrammingLanguages
+            GithubUsername
+        }
+        # Manager-specific fields
+        ... on Manager {
+            Department
+            TeamSize
+            Reports {
+                __typename
+                ID
+                Name
+                ... on Developer {
+                    ProgrammingLanguages
+                }
+            }
         }
     }
 }
@@ -204,7 +240,37 @@ query GetEmployee($id: Int!) {
   "id": 2
 }
 
-### Create Employee (Developer)
+### Test Type Discovery with Different Employee IDs
+# ID 1 is John Doe (Developer), ID 2 is Jane Smith (Manager), ID 3 is Bob Wilson (Developer)
+GRAPHQL http://localhost:8080/graphql
+
+query TestMultipleEmployees {
+    developer: GetEmployee(id: 1) {
+        __typename
+        Name
+        ... on Developer {
+            ProgrammingLanguages
+            GithubUsername
+        }
+    }
+    manager: GetEmployee(id: 2) {
+        __typename
+        Name
+        ... on Manager {
+            Department
+            TeamSize
+        }
+    }
+    anotherDev: GetEmployee(id: 3) {
+        __typename
+        Name
+        ... on Developer {
+            ProgrammingLanguages
+        }
+    }
+}
+
+### Create Employee (Developer) - Using Union Return Type
 GRAPHQL http://localhost:8080/graphql
 
 mutation CreateDeveloper {
@@ -216,17 +282,18 @@ mutation CreateDeveloper {
         programmingLanguages: ["Go", "TypeScript", "Python"]
         githubUsername: "alice-dev"
     }) {
+        __typename
         ... on Developer {
-            id
-            name
-            email
-            programmingLanguages
-            githubUsername
+            ID
+            Name
+            Email
+            ProgrammingLanguages
+            GithubUsername
         }
     }
 }
 
-### Create Employee (Manager)
+### Create Employee (Manager) - Using Union Return Type
 GRAPHQL http://localhost:8080/graphql
 
 mutation CreateManager {
@@ -236,14 +303,15 @@ mutation CreateManager {
         salary: 130000
         type: MANAGER
         department: "Product"
-        programmingLanguages: ["Go"]
+        programmingLanguages: []
     }) {
+        __typename
         ... on Manager {
-            id
-            name
-            email
-            department
-            teamSize
+            ID
+            Name
+            Email
+            Department
+            TeamSize
         }
     }
 }
@@ -708,3 +776,94 @@ mutation UpdateWidgetForSubscription($id: Int\!) {
 {
   "id": 2
 }
+
+
+### Employee Interface Introspection
+# Check how the Employee interface is represented in introspection
+GRAPHQL http://localhost:8080/graphql
+
+query EmployeeInterfaceIntrospection {
+    employeeInterface: __type(name: "IEmployee") {
+        kind
+        name
+        description
+        possibleTypes {
+            name
+            kind
+        }
+        fields {
+            name
+            type {
+                name
+                kind
+            }
+        }
+    }
+    employeeType: __type(name: "Employee") {
+        kind
+        name
+        interfaces {
+            name
+        }
+    }
+}
+
+### EmployeeResult Union Introspection
+# Check the union type used in CreateEmployee mutation
+GRAPHQL http://localhost:8080/graphql
+
+query EmployeeResultUnionIntrospection {
+    __type(name: "EmployeeResult") {
+        kind
+        name
+        description
+        possibleTypes {
+            name
+            kind
+        }
+    }
+}
+
+### Developer and Manager Type Introspection
+# Check what interfaces Developer and Manager implement
+GRAPHQL http://localhost:8080/graphql
+
+query ConcreteTypesIntrospection {
+    developer: __type(name: "Developer") {
+        kind
+        name
+        interfaces {
+            name
+        }
+        fields {
+            name
+            type {
+                name
+                kind
+                ofType {
+                    name
+                    kind
+                }
+            }
+        }
+    }
+    manager: __type(name: "Manager") {
+        kind
+        name
+        interfaces {
+            name
+        }
+        fields {
+            name
+            type {
+                name
+                kind
+                ofType {
+                    name
+                    kind
+                }
+            }
+        }
+    }
+}
+EOF < /dev/null

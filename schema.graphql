@@ -1,18 +1,8 @@
-type Mutation {
-	AddProductReview(productId: Int!, review: ReviewInput!): Review
-	CreateEmployee(input: EmployeeInput!): CreateEmployeeResultUnion!
-	CreateProduct(input: ProductInput!): Product
-	CreateWidget(widget: WidgetInput!): Widget!
-	PromoteToManager(employeeId: Int!, department: String!): Manager
-	UpdateProductStatus(id: Int!, status: String!): Product
-	UpdateWidget(widget: WidgetInput!): Widget!
-}
-
 type Query {
-	GetAllEmployees: [Employee!]!
+	GetAllEmployees: [Employee]!
 	GetCategories: [Category!]!
 	GetCurrentUser: User
-	GetEmployee(id: Int!): IEmployee!
+	GetEmployee(id: Int!): Employee
 	GetManagers: [Manager]!
 	GetProduct(id: Int!): Product
 	GetProducts(filter: ProductFilter): [Product!]!
@@ -28,6 +18,16 @@ type Subscription {
 	productUpdates: ProductUpdate!
 	productUpdatesByCategory(categoryId: Int!): ProductUpdate!
 	widgetUpdates(widgetId: Int): WidgetUpdate!
+}
+
+type Mutation {
+	AddProductReview(productId: Int!, review: ReviewInput!): Review
+	CreateEmployee(input: EmployeeInput!): EmployeeResult!
+	CreateProduct(input: ProductInput!): Product
+	CreateWidget(widget: WidgetInput!): Widget!
+	PromoteToManager(employeeId: Int!, department: String!): Manager
+	UpdateProductStatus(id: Int!, status: String!): Product
+	UpdateWidget(widget: WidgetInput!): Widget!
 }
 
 input EmployeeInput {
@@ -97,8 +97,6 @@ type Category {
 	Products: [Product!]!
 }
 
-union CreateEmployeeResultUnion = Developer | Manager
-
 type Developer implements IEmployee {
 	Email: String!
 	GithubUsername: String
@@ -128,6 +126,8 @@ type Employee implements IEmployee {
 	Salary: Float!
 }
 
+union EmployeeResult = Developer | Manager
+
 type GreetingResponse {
 	Greeting: String!
 }
@@ -150,7 +150,7 @@ type Manager implements IEmployee {
 	ID: Int!
 	Name: String!
 	PersonalDetails: PersonalInfo
-	Reports: [Employee!]!
+	Reports: [Employee]!
 	Salary: Float!
 	TeamSize: Int!
 }

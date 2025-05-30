@@ -79,6 +79,29 @@ go run ./cmd/server
 # - Schema: GET http://localhost:8080/graphql
 ```
 
+### Command-Line Query Execution
+You can also execute GraphQL queries directly from the command line without starting the server:
+
+```bash
+# Basic query
+go run ./cmd/server -query 'query { GetAllEmployees { __typename ID Name } }'
+
+# Query with variables
+go run ./cmd/server -query 'query GetEmp($id: Int!) { GetEmployee(id: $id) { Name } }' -variables '{"id": 1}'
+
+# Mutation example
+go run ./cmd/server -query 'mutation { CreateWidget(widget: {name: "Test", price: 9.99, quantity: 10}) { id name } }'
+
+# Complex query with fragments
+go run ./cmd/server -query 'query { GetEmployee(id: 1) { __typename ... on Developer { Name ProgrammingLanguages } ... on Manager { Name Department } } }'
+```
+
+This is particularly useful for:
+- Testing queries quickly during development
+- CI/CD pipelines that need to verify GraphQL endpoints
+- Debugging specific queries without using an HTTP client
+- Generating sample responses for documentation
+
 ### Testing Subscriptions
 ```bash
 # Terminal 1: Start the server

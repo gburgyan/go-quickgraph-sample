@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"flag"
 	"fmt"
 	"github.com/gburgyan/go-quickgraph"
 	"github.com/gburgyan/go-quickgraph-sample/handlers"
@@ -13,6 +15,11 @@ import (
 )
 
 func main() {
+	// Parse command line flags
+	queryFlag := flag.String("query", "", "Execute a GraphQL query directly and print the result")
+	variablesFlag := flag.String("variables", "{}", "Variables for the query in JSON format")
+	flag.Parse()
+
 	ctx := context.Background()
 
 	// Create graph with timing enabled
@@ -43,7 +50,7 @@ func main() {
 
 	// Explicitly register types that aren't directly returned by any GraphQL function
 	// This ensures they appear in the schema and can be used in unions
-	graph.RegisterTypes(ctx, handlers.Employee{}, handlers.Developer{}, handlers.Manager{})
+	graph.RegisterTypes(ctx, handlers.Employee{}, handlers.Developer{}, handlers.Manager{}, handlers.EmployeeResultUnion{})
 
 	// Enable introspection
 	graph.EnableIntrospection(ctx)
@@ -55,6 +62,11 @@ func main() {
 		log.Printf("Failed to write schema file: %v", err)
 	} else {
 		log.Println("Schema written to schema.graphql")
+	}
+
+	// If a query is provided via command line, execute it and exit
+	if *queryFlag != "" {
+		executeQueryAndExit(ctx, &graph, *queryFlag, *variablesFlag)
 	}
 
 	// Set a cache for parsed queries
@@ -84,4 +96,30 @@ func main() {
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal("Failed to start server:", err)
 	}
+}
+
+// executeQueryAndExit executes a GraphQL query and prints the result, then exits
+func executeQueryAndExit(ctx context.Context, graph *quickgraph.Graphy, query string, variablesJSON string) {
+	// Execute the query
+	result, err := graph.ProcessRequest(ctx, query, variablesJSON)
+	if err != nil {
+		log.Fatalf("Failed to execute query: %v", err)
+	}
+
+	// The result is already a JSON string, but let's parse and re-format it for pretty printing
+	var jsonResult interface{}
+	if err := json.Unmarshal([]byte(result), &jsonResult); err != nil {
+		// If we can't parse it, just print it as-is
+		fmt.Println(result)
+	} else {
+		// Pretty print the result
+		output, err := json.MarshalIndent(jsonResult, "", "  ")
+		if err != nil {
+			fmt.Println(result)
+		} else {
+			fmt.Println(string(output))
+		}
+	}
+
+	os.Exit(0)
 }

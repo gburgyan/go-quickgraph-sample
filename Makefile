@@ -32,6 +32,16 @@ run-trigger:
 	@echo "Starting event trigger..."
 	@go run ./cmd/trigger-events
 
+# Execute a GraphQL query from the command line
+query:
+	@if [ -z "$(Q)" ]; then \
+		echo "Usage: make query Q='<GraphQL query>' [V='<JSON variables>']"; \
+		echo "Example: make query Q='query { GetAllEmployees { ID Name } }'"; \
+		echo "Example: make query Q='query(\$$id: Int!) { GetEmployee(id: \$$id) { Name } }' V='{\"id\": 1}'"; \
+	else \
+		go run ./cmd/server -query '$(Q)' -variables '$(if $(V),$(V),{})' 2>&1 | grep -v "Schema written"; \
+	fi
+
 # Run server and client in parallel (requires GNU parallel or similar)
 demo:
 	@echo "Starting demo (server + client)..."
@@ -55,9 +65,14 @@ help:
 	@echo "  make run-gin       - Run the Gin-based server (port 8081)"
 	@echo "  make run-client    - Run the subscription client"
 	@echo "  make run-trigger   - Run the event trigger"
+	@echo "  make query         - Execute a GraphQL query from command line"
 	@echo "  make demo          - Instructions for running the full demo"
 	@echo "  make clean         - Remove built binaries"
 	@echo "  make help          - Show this help message"
+	@echo ""
+	@echo "Query examples:"
+	@echo "  make query Q='query { GetAllEmployees { ID Name } }'"
+	@echo "  make query Q='query { GetEmployee(id: 1) { __typename Name } }'"
 	@echo ""
 	@echo "Quick start:"
 	@echo "  1. make run-server    (in terminal 1)"
