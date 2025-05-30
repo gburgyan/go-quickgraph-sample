@@ -12,14 +12,6 @@ type Query {
 	greeting(name: String!): GreetingResponse!
 }
 
-type Subscription {
-	currentTime(intervalMs: Int!): TimeUpdate!
-	orderStatusUpdates(orderId: String!): OrderUpdate!
-	productUpdates: ProductUpdate!
-	productUpdatesByCategory(categoryId: Int!): ProductUpdate!
-	widgetUpdates(widgetId: Int): WidgetUpdate!
-}
-
 type Mutation {
 	AddProductReview(productId: Int!, review: ReviewInput!): Review
 	CreateEmployee(input: EmployeeInput!): EmployeeResult!
@@ -28,6 +20,14 @@ type Mutation {
 	PromoteToManager(employeeId: Int!, department: String!): Manager
 	UpdateProductStatus(id: Int!, status: String!): Product
 	UpdateWidget(widget: WidgetInput!): Widget!
+}
+
+type Subscription {
+	currentTime(intervalMs: Int!): TimeUpdate!
+	orderStatusUpdates(orderId: String!): OrderUpdate!
+	productUpdates: ProductUpdate!
+	productUpdatesByCategory(categoryId: Int!): ProductUpdate!
+	widgetUpdates(widgetId: Int): WidgetUpdate!
 }
 
 input EmployeeInput {
