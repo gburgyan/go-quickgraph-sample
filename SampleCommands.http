@@ -890,8 +890,8 @@ GRAPHQL http://localhost:8080/graphql
 
 mutation CreateColoredProduct {
     createColoredProduct(
-        name: "Ruby Red Widget"
-        price: 2999
+        name: "Ruby Red Widget",
+        price: 2999,
         color: "#FF0000"
     ) {
         id
@@ -906,8 +906,8 @@ GRAPHQL http://localhost:8080/graphql
 
 mutation CreateColoredProductWithVars($name: String!, $price: Money!, $color: HexColor!) {
     createColoredProduct(
-        name: $name
-        price: $price
+        name: $name,
+        price: $price,
         color: $color
     ) {
         id
@@ -990,8 +990,8 @@ GRAPHQL http://localhost:8080/graphql
 
 mutation TestInvalidColor {
     createColoredProduct(
-        name: "Invalid Color Product"
-        price: 1000
+        name: "Invalid Color Product",
+        price: 1000,
         color: "not-a-color"
     ) {
         id
@@ -1003,8 +1003,8 @@ GRAPHQL http://localhost:8080/graphql
 
 mutation TestShortColorFormat {
     createColoredProduct(
-        name: "Blue Widget"
-        price: 1500
+        name: "Blue Widget",
+        price: 1500,
         color: "#00F"
     ) {
         id
@@ -1019,8 +1019,8 @@ GRAPHQL http://localhost:8080/graphql
 mutation ComplexScalarExample($productData: String!, $amount: Money!, $userEmail: EmailAddress!) {
     # Create a colored product
     product: createColoredProduct(
-        name: $productData
-        price: $amount
+        name: $productData,
+        price: $amount,
         color: "#FFD700"
     ) {
         id
