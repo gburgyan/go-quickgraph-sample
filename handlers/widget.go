@@ -14,6 +14,12 @@ type Widget struct {
 	Quantity int     `json:"quantity"`
 }
 
+type WidgetCreateInput struct {
+	Name     string  `json:"name"`
+	Price    float64 `json:"price"`
+	Quantity int     `json:"quantity"`
+}
+
 var (
 	widgets = []Widget{
 		{
@@ -36,7 +42,7 @@ func RegisterWidgetHandlers(ctx context.Context, graphy *quickgraph.Graphy) {
 func GetWidget(id int) (Widget, error) {
 	widgetsMux.RLock()
 	defer widgetsMux.RUnlock()
-	
+
 	for _, widget := range widgets {
 		if widget.ID == id {
 			return widget, nil
@@ -48,22 +54,27 @@ func GetWidget(id int) (Widget, error) {
 func GetWidgets() ([]Widget, error) {
 	widgetsMux.RLock()
 	defer widgetsMux.RUnlock()
-	
+
 	result := make([]Widget, len(widgets))
 	copy(result, widgets)
 	return result, nil
 }
 
-func CreateWidget(widget Widget) (Widget, error) {
+func CreateWidget(input WidgetCreateInput) (Widget, error) {
 	widgetsMux.Lock()
 	defer widgetsMux.Unlock()
-	
-	widget.ID = len(widgets) + 1
+
+	widget := Widget{
+		ID:       len(widgets) + 1,
+		Name:     input.Name,
+		Price:    input.Price,
+		Quantity: input.Quantity,
+	}
 	widgets = append(widgets, widget)
-	
+
 	// Broadcast the widget creation
 	BroadcastWidgetUpdate(widget, "created")
-	
+
 	return widget, nil
 }
 
@@ -71,17 +82,17 @@ func UpdateWidget(widget Widget) (Widget, error) {
 	if widget.Quantity < 0 {
 		return Widget{}, errors.New("quantity cannot be negative")
 	}
-	
+
 	widgetsMux.Lock()
 	defer widgetsMux.Unlock()
-	
+
 	for i, w := range widgets {
 		if w.ID == widget.ID {
 			widgets[i] = widget
-			
+
 			// Broadcast the widget update
 			BroadcastWidgetUpdate(widget, "updated")
-			
+
 			return widget, nil
 		}
 	}

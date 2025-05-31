@@ -578,8 +578,9 @@ GRAPHQL http://localhost:8080/graphql
 }
 
 
-### Complex Query with menthods on interfaces
+### Complex Query with methods on interfaces
 GRAPHQL http://localhost:8080/graphql
+Authorization: Bearer admin-token
 
 {
     GetAllEmployees {
@@ -730,7 +731,7 @@ mutation CreateProductForSubscription {
 ### Update Product Status (triggers productUpdates)
 GRAPHQL http://localhost:8080/graphql
 
-mutation UpdateProductForSubscription($id: Int\!) {
+mutation UpdateProductForSubscription($id: Int!) {
     UpdateProductStatus(id: $id, status: ACTIVE) {
         id
         name

@@ -22,7 +22,7 @@ type Mutation {
 	AddProductReview(productId: Int!, review: ReviewInput!): Review
 	CreateEmployee(input: EmployeeInput!): EmployeeResult!
 	CreateProduct(input: ProductInput!): Product
-	CreateWidget(widget: WidgetInput!): Widget!
+	CreateWidget(widget: WidgetCreateInput!): Widget!
 	PromoteToManager(employeeId: Int!, department: String!): Manager
 	UpdateProductStatus(id: Int!, status: String!): Product
 	UpdateWidget(widget: WidgetInput!): Widget!
@@ -70,6 +70,12 @@ input ReviewInput {
 
 input WidgetInput {
 	id: Int!
+	name: String!
+	price: Float!
+	quantity: Int!
+}
+
+input WidgetCreateInput {
 	name: String!
 	price: Float!
 	quantity: Int!
