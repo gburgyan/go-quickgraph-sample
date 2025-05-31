@@ -627,53 +627,42 @@ Authorization: Bearer admin-token
 ### Subscribe to Current Time
 # This subscription emits the current time at specified intervals
 subscription CurrentTime {
-currentTime(intervalMs: 1000) {
-timestamp
-formatted
-}
+    currentTime(intervalMs: 1000) {
+        timestamp
+        formatted
+    }
 }
 
-### Subscribe to All Product Updates
+### Subscribe to Product Updates
 # This subscription notifies about any product creation, update, or deletion
-subscription ProductUpdates {
-    productUpdates {
+# Use -1 for categoryId to get updates for all categories
+subscription ProductUpdates($categoryId: Int!) {
+    productUpdates(categoryId: $categoryId) {
         product {
             id
             name
             price
             status
             category {
-name
-}
-}
-action
-timestamp
-}
-}
-
-### Subscribe to Product Updates by Category
-# This subscription filters product updates by category
-subscription ProductUpdatesByCategory($categoryId: Int\!) {
-    productUpdatesByCategory(categoryId: $categoryId) {
-        product {
-            id
-            name
-            price
-            status
+                name
+            }
         }
         action
-timestamp
-}
+        timestamp
+    }
 }
 
 # Variables:
+# For all categories: { "categoryId": -1 }
+# For specific category: { "categoryId": 1 }
 {
-  "categoryId": 1
+  "categoryId": -1
 }
 
 ### Subscribe to Widget Updates
 # Monitor all widget changes or filter by specific widget ID
-subscription WidgetUpdates($widgetId: Int) {
+# Use -1 for widgetId to get updates for all widgets
+subscription WidgetUpdates($widgetId: Int!) {
     widgetUpdates(widgetId: $widgetId) {
         widget {
             id
@@ -682,24 +671,26 @@ subscription WidgetUpdates($widgetId: Int) {
             quantity
         }
         action
-timestamp
-}
+        timestamp
+    }
 }
 
-# Variables (optional - omit to get all widget updates):
+# Variables:
+# For all widgets: { "widgetId": -1 }
+# For specific widget: { "widgetId": 1 }
 {
-  "widgetId": 1
+  "widgetId": -1
 }
 
 ### Subscribe to Order Status Updates
 # Track the status of a specific order as it progresses
-subscription OrderStatus($orderId: String\!) {
-orderStatusUpdates(orderId: $orderId) {
-orderId
-status
-message
-timestamp
-}
+subscription OrderStatus($orderId: String!) {
+    orderStatusUpdates(orderId: $orderId) {
+        orderId
+        status
+        message
+        timestamp
+    }
 }
 
 # Variables:
@@ -740,7 +731,7 @@ mutation UpdateProductForSubscription($id: Int!) {
 }
 
 {
-  "id": 5
+  "id": 6
 }
 
 ### Create Widget (triggers widgetUpdates)
@@ -761,7 +752,7 @@ mutation CreateWidgetForSubscription {
 ### Update Widget (triggers widgetUpdates)
 GRAPHQL http://localhost:8080/graphql
 
-mutation UpdateWidgetForSubscription($id: Int\!) {
+mutation UpdateWidgetForSubscription($id: Int!) {
     UpdateWidget(widget: {
         id: $id
         name: "Updated Subscription Widget"

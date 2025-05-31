@@ -118,7 +118,7 @@
         <div class="subscription-box">
             <h2>Product Updates</h2>
             <div class="controls">
-                <label>Category ID (optional): <input type="number" id="categoryId" placeholder="All categories"></label>
+                <label>Category ID (leave empty for all): <input type="number" id="categoryId" placeholder="All categories"></label>
                 <button onclick="subscribeToProducts()">Subscribe</button>
                 <button onclick="unsubscribe('product-sub')">Unsubscribe</button>
             </div>
@@ -129,7 +129,7 @@
         <div class="subscription-box">
             <h2>Widget Updates</h2>
             <div class="controls">
-                <label>Widget ID (optional): <input type="number" id="widgetId" placeholder="All widgets"></label>
+                <label>Widget ID (leave empty for all): <input type="number" id="widgetId" placeholder="All widgets"></label>
                 <button onclick="subscribeToWidgets()">Subscribe</button>
                 <button onclick="unsubscribe('widget-sub')">Unsubscribe</button>
             </div>
@@ -292,47 +292,32 @@
 
         function subscribeToProducts() {
             const categoryId = document.getElementById('categoryId').value;
-            let query;
+            const categoryIdValue = categoryId ? parseInt(categoryId) : -1;
             
-            if (categoryId) {
-                query = `
-                    subscription ProductUpdates {
-                        productUpdatesByCategory(categoryId: ${categoryId}) {
-                            product {
-                                id
-                                name
-                                price
-                                status
-                            }
-                            action
-                            timestamp
+            const query = `
+                subscription ProductUpdates($categoryId: Int!) {
+                    productUpdates(categoryId: $categoryId) {
+                        product {
+                            id
+                            name
+                            price
+                            status
                         }
+                        action
+                        timestamp
                     }
-                `;
-            } else {
-                query = `
-                    subscription ProductUpdates {
-                        productUpdates {
-                            product {
-                                id
-                                name
-                                price
-                                status
-                            }
-                            action
-                            timestamp
-                        }
-                    }
-                `;
-            }
+                }
+            `;
             
-            subscribe('product-sub', query, null, 'productMessages');
+            subscribe('product-sub', query, { categoryId: categoryIdValue }, 'productMessages');
         }
 
         function subscribeToWidgets() {
             const widgetId = document.getElementById('widgetId').value;
+            const widgetIdValue = widgetId ? parseInt(widgetId) : -1;
+            
             const query = `
-                subscription WidgetUpdates($widgetId: Int) {
+                subscription WidgetUpdates($widgetId: Int!) {
                     widgetUpdates(widgetId: $widgetId) {
                         widget {
                             id
@@ -345,8 +330,7 @@
                 }
             `;
             
-            const variables = widgetId ? { widgetId: parseInt(widgetId) } : {};
-            subscribe('widget-sub', query, variables, 'widgetMessages');
+            subscribe('widget-sub', query, { widgetId: widgetIdValue }, 'widgetMessages');
         }
 
         function subscribeToOrder() {

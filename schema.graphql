@@ -33,9 +33,8 @@ type Mutation {
 type Subscription {
 	currentTime(intervalMs: Int!): TimeUpdate!
 	orderStatusUpdates(orderId: String!): OrderUpdate!
-	productUpdates: ProductUpdate!
-	productUpdatesByCategory(categoryId: Int!): ProductUpdate!
-	widgetUpdates(widgetId: Int): WidgetUpdate!
+	productUpdates(categoryId: Int!): ProductUpdate!
+	widgetUpdates(widgetId: Int!): WidgetUpdate!
 }
 
 input EmployeeInput {

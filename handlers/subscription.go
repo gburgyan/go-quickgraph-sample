@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/gburgyan/go-quickgraph"
@@ -30,11 +31,15 @@ type OrderUpdate struct {
 	Timestamp time.Time `json:"timestamp"`
 }
 
-// Global channels for broadcasting updates
+// Global subscriber registries for broadcasting updates
 var (
 	productUpdateChan = make(chan ProductUpdate, 100)
 	widgetUpdateChan  = make(chan WidgetUpdate, 100)
 	orderUpdateChan   = make(chan OrderUpdate, 100)
+
+	// Widget subscription management
+	widgetSubscribers = make(map[string]chan WidgetUpdate)
+	widgetSubsMutex   sync.RWMutex
 )
 
 // BroadcastProductUpdate sends a product update to all subscribers
@@ -52,15 +57,33 @@ func BroadcastProductUpdate(product Product, action string) {
 
 // BroadcastWidgetUpdate sends a widget update to all subscribers
 func BroadcastWidgetUpdate(widget Widget, action string) {
-	select {
-	case widgetUpdateChan <- WidgetUpdate{
+	update := WidgetUpdate{
 		Widget:    widget,
 		Action:    action,
 		Timestamp: time.Now(),
-	}:
-	default:
-		// Channel full, drop the message
 	}
+
+	widgetSubsMutex.RLock()
+	subscriberCount := len(widgetSubscribers)
+	widgetSubsMutex.RUnlock()
+
+	fmt.Printf("🔔 Broadcasting widget update: %s widget ID=%d to %d subscribers\n", action, widget.ID, subscriberCount)
+
+	widgetSubsMutex.RLock()
+	defer widgetSubsMutex.RUnlock()
+
+	// Send to all registered subscribers
+	sent := 0
+	for subId, ch := range widgetSubscribers {
+		select {
+		case ch <- update:
+			sent++
+			fmt.Printf("  ✅ Sent to subscriber %s\n", subId)
+		default:
+			fmt.Printf("  ❌ Failed to send to subscriber %s (channel full)\n", subId)
+		}
+	}
+	fmt.Printf("📊 Broadcast complete: %d/%d subscribers received update\n", sent, subscriberCount)
 }
 
 // BroadcastOrderUpdate sends an order update to subscribers
@@ -77,8 +100,9 @@ func BroadcastOrderUpdate(orderID, status, message string) {
 	}
 }
 
-// ProductUpdates subscription - subscribes to all product changes
-func ProductUpdates(ctx context.Context) <-chan ProductUpdate {
+// ProductUpdates subscription - subscribes to product changes
+// Use -1 for categoryId to get updates for all categories
+func ProductUpdates(ctx context.Context, categoryId int) <-chan ProductUpdate {
 	ch := make(chan ProductUpdate)
 
 	go func() {
@@ -88,10 +112,13 @@ func ProductUpdates(ctx context.Context) <-chan ProductUpdate {
 			case <-ctx.Done():
 				return
 			case update := <-productUpdateChan:
-				select {
-				case ch <- update:
-				case <-ctx.Done():
-					return
+				// If categoryId is -1, send all updates; otherwise filter by specific category
+				if categoryId == -1 || update.Product.CategoryID == categoryId {
+					select {
+					case ch <- update:
+					case <-ctx.Done():
+						return
+					}
 				}
 			}
 		}
@@ -100,65 +127,74 @@ func ProductUpdates(ctx context.Context) <-chan ProductUpdate {
 	return ch
 }
 
-// ProductUpdatesByCategory subscription - subscribes to product changes in a specific category
-func ProductUpdatesByCategory(ctx context.Context, categoryId int) (<-chan ProductUpdate, error) {
-	// Validate category exists
-	productsMux.RLock()
-	found := false
-	for _, cat := range categories {
-		if cat.ID == categoryId {
-			found = true
-			break
-		}
-	}
-	productsMux.RUnlock()
-
-	if !found {
-		return nil, fmt.Errorf("category with ID %d not found", categoryId)
-	}
-
-	ch := make(chan ProductUpdate)
-
-	go func() {
-		defer close(ch)
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case update := <-productUpdateChan:
-				// Filter by category
-				if update.Product.CategoryID == categoryId {
-					select {
-					case ch <- update:
-					case <-ctx.Done():
-						return
-					}
-				}
-			}
-		}
-	}()
-
-	return ch, nil
-}
-
 // WidgetUpdates subscription - subscribes to widget updates
-func WidgetUpdates(ctx context.Context, widgetId *int) <-chan WidgetUpdate {
-	ch := make(chan WidgetUpdate)
+// Use -1 for widgetId to get updates for all widgets
+func WidgetUpdates(ctx context.Context, widgetId int) <-chan WidgetUpdate {
+	ch := make(chan WidgetUpdate, 10)
+	subCh := make(chan WidgetUpdate, 10)
+
+	// Generate unique subscription ID
+	subId := fmt.Sprintf("widget-sub-%d", time.Now().UnixNano())
+
+	fmt.Printf("🔗 NEW WIDGET SUBSCRIPTION CALLED: %s (filter: widgetId=%v)\n", subId, widgetId)
+	fmt.Printf("🔗 Context: %+v\n", ctx)
+	fmt.Printf("🔗 WidgetId pointer: %p, value: %v\n", widgetId, widgetId)
+
+	// Register subscriber
+	widgetSubsMutex.Lock()
+	widgetSubscribers[subId] = subCh
+	widgetSubsMutex.Unlock()
 
 	go func() {
 		defer close(ch)
+		defer func() {
+			// Unregister subscriber
+			widgetSubsMutex.Lock()
+			delete(widgetSubscribers, subId)
+			close(subCh)
+			widgetSubsMutex.Unlock()
+			fmt.Printf("🔌 Widget subscription closed: %s\n", subId)
+		}()
+
+		// Send initial connection confirmation
+		fmt.Printf("🚀 Widget subscription goroutine started: %s\n", subId)
+
+		// Send initial confirmation update to keep subscription alive
+		initialUpdate := WidgetUpdate{
+			Widget: Widget{
+				ID:       0,
+				Name:     "Connection established",
+				Price:    0,
+				Quantity: 0,
+			},
+			Action:    "connected",
+			Timestamp: time.Now(),
+		}
+
+		select {
+		case ch <- initialUpdate:
+			fmt.Printf("📤 Sent initial connection message to client: %s\n", subId)
+		case <-ctx.Done():
+			return
+		}
+
 		for {
 			select {
 			case <-ctx.Done():
+				fmt.Printf("⏹️ Widget subscription cancelled: %s\n", subId)
 				return
-			case update := <-widgetUpdateChan:
-				// If widgetId is specified, filter by it
-				if widgetId == nil || update.Widget.ID == *widgetId {
+			case update := <-subCh:
+				fmt.Printf("📨 Widget subscription %s received update: %s widget ID=%d\n", subId, update.Action, update.Widget.ID)
+				// If widgetId is -1, send all updates; otherwise filter by specific ID
+				if widgetId == -1 || update.Widget.ID == widgetId {
+					fmt.Printf("✅ Widget update passed filter, sending to client: %s\n", subId)
 					select {
 					case ch <- update:
 					case <-ctx.Done():
 						return
 					}
+				} else {
+					fmt.Printf("🚫 Widget update filtered out (wanted ID=%d, got ID=%d): %s\n", widgetId, update.Widget.ID, subId)
 				}
 			}
 		}
@@ -249,8 +285,7 @@ type TimeUpdate struct {
 // RegisterSubscriptionHandlers registers all subscription handlers
 func RegisterSubscriptionHandlers(ctx context.Context, graph *quickgraph.Graphy) {
 	// Product subscriptions
-	graph.RegisterSubscription(ctx, "productUpdates", ProductUpdates)
-	graph.RegisterSubscription(ctx, "productUpdatesByCategory", ProductUpdatesByCategory, "categoryId")
+	graph.RegisterSubscription(ctx, "productUpdates", ProductUpdates, "categoryId")
 
 	// Widget subscriptions
 	graph.RegisterSubscription(ctx, "widgetUpdates", WidgetUpdates, "widgetId")
