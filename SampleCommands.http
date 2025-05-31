@@ -991,7 +991,7 @@ GRAPHQL http://localhost:8080/graphql
 mutation TestInvalidColor {
     createColoredProduct(
         name: "Invalid Color Product",
-        price: 1000,
+        price: "15.00 HUF",
         color: "not-a-color"
     ) {
         id
