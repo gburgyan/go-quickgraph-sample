@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"reflect"
@@ -27,6 +28,36 @@ type HexColor string
 type Money struct {
 	Amount   int64  `json:"amount"`   // Amount in cents
 	Currency string `json:"currency"` // Currency code (e.g., "USD", "EUR")
+}
+
+// UnmarshalJSON implements custom JSON unmarshaling for Money
+// It supports both string format ("123.45 USD") and struct format ({"amount": 12345, "currency": "USD"})
+func (m *Money) UnmarshalJSON(data []byte) error {
+	// First try to unmarshal as a string (scalar format)
+	var str string
+	if err := json.Unmarshal(data, &str); err == nil {
+		parsed, parseErr := ParseMoney(str)
+		if parseErr != nil {
+			return fmt.Errorf("failed to parse Money string '%s': %v", str, parseErr)
+		}
+		*m = parsed
+		return nil
+	}
+
+	// If string parsing fails, try struct format
+	type moneyAlias Money
+	var alias moneyAlias
+	if err := json.Unmarshal(data, &alias); err != nil {
+		return fmt.Errorf("Money must be either a string like '123.45 USD' or an object with amount and currency fields: %v", err)
+	}
+	*m = Money(alias)
+	return nil
+}
+
+// MarshalJSON implements custom JSON marshaling for Money
+// It always outputs the string format for consistency with GraphQL scalar representation
+func (m Money) MarshalJSON() ([]byte, error) {
+	return json.Marshal(m.String())
 }
 
 // EmailAddress represents a validated email address
