@@ -37,6 +37,11 @@ func main() {
 		MaxComplexity:          0, // Overall query complexity score
 	}
 
+	// Register custom scalar types first
+	if err := handlers.RegisterScalarHandlers(ctx, &graph); err != nil {
+		log.Fatalf("Failed to register scalar handlers: %v", err)
+	}
+
 	// Register original handlers
 	graph.RegisterQuery(ctx, "greeting", handlers.Greeting, "name")
 	handlers.RegisterWidgetHandlers(ctx, &graph)
@@ -47,6 +52,9 @@ func main() {
 	handlers.RegisterSearchHandlers(ctx, &graph)
 	handlers.RegisterAuthHandlers(ctx, &graph)
 	handlers.RegisterSubscriptionHandlers(ctx, &graph)
+
+	// Register scalar demo handlers
+	handlers.RegisterScalarDemoHandlers(ctx, &graph)
 
 	// Explicitly register types that aren't directly returned by any GraphQL function
 	// This ensures they appear in the schema and can be used in unions

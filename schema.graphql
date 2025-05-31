@@ -9,7 +9,11 @@ type Query {
 	GetWidget(id: Int!): Widget!
 	GetWidgets: [Widget!]!
 	Search(query: String!): [SearchResult!]!
+	getCurrentDateTime: DateTime!
+	getEmployeeByIDScalar(id: EmployeeID!): Employee
+	getServerStartTime: DateTime!
 	greeting(name: String!): GreetingResponse!
+	validateEmail(email: EmailAddress!): Boolean!
 }
 
 type Mutation {
@@ -20,6 +24,7 @@ type Mutation {
 	PromoteToManager(employeeId: Int!, department: String!): Manager
 	UpdateProductStatus(id: Int!, status: String!): Product
 	UpdateWidget(widget: WidgetInput!): Widget!
+	createColoredProduct(name: String!, price: Money!, color: HexColor!): ColoredProduct!
 }
 
 type Subscription {
@@ -38,16 +43,6 @@ input EmployeeInput {
 	programmingLanguages: [String!]!
 	salary: Float!
 	type: String!
-}
-
-input LocationInput {
-	cacheEnd: Int!
-	cacheStart: Int!
-	cacheZone: zoneInput
-	extend: String!
-	name: String!
-	tx: [zoneTransInput!]!
-	zone: [zoneInput!]!
 }
 
 input ProductFilter {
@@ -77,24 +72,18 @@ input WidgetInput {
 	quantity: Int!
 }
 
-input zoneInput {
-	isDST: Boolean!
-	name: String!
-	offset: Int!
-}
-
-input zoneTransInput {
-	index: Int!
-	isstd: Boolean!
-	isutc: Boolean!
-	when: Int!
-}
-
 type Category {
 	Description: String
 	ID: Int!
 	Name: String!
 	Products: [Product!]!
+}
+
+type ColoredProduct {
+	color: HexColor!
+	id: ProductID!
+	name: String!
+	price: Money!
 }
 
 type Developer implements IEmployee {
@@ -132,17 +121,6 @@ type GreetingResponse {
 	Greeting: String!
 }
 
-type Location {
-	cacheEnd: Int!
-	cacheStart: Int!
-	cacheZone: zone
-	extend: String!
-	name: String!
-	String: String!
-	tx: [zoneTrans!]!
-	zone: [zone!]!
-}
-
 type Manager implements IEmployee {
 	Department: String!
 	Email: String!
@@ -159,7 +137,7 @@ type OrderUpdate {
 	message: String!
 	orderId: String!
 	status: String!
-	timestamp: Time!
+	timestamp: DateTime!
 }
 
 type PersonalInfo {
@@ -185,7 +163,7 @@ type Product {
 type ProductUpdate {
 	action: String!
 	product: Product!
-	timestamp: Time!
+	timestamp: DateTime!
 }
 
 type Review {
@@ -199,50 +177,6 @@ type Review {
 }
 
 union SearchResult = Developer | Employee | Manager | Product | Widget
-
-type Time {
-	Add(arg1: Int!): Time!
-	AddDate(arg1: Int!, arg2: Int!, arg3: Int!): Time!
-	After(wall: Int!, ext: Int!, loc: LocationInput): Boolean!
-	AppendBinary(arg1: [Int!]!): [Int!]!
-	AppendFormat(arg1: [Int!]!, arg2: String!): [Int!]!
-	AppendText(arg1: [Int!]!): [Int!]!
-	Before(wall: Int!, ext: Int!, loc: LocationInput): Boolean!
-	Compare(wall: Int!, ext: Int!, loc: LocationInput): Int!
-	Day: Int!
-	Equal(wall: Int!, ext: Int!, loc: LocationInput): Boolean!
-	ext: Int!
-	Format(arg1: String!): String!
-	GobEncode: [Int!]!
-	GoString: String!
-	Hour: Int!
-	In(arg1: LocationInput): Time!
-	IsDST: Boolean!
-	IsZero: Boolean!
-	loc: Location
-	Local: Time!
-	Location: Location
-	MarshalBinary: [Int!]!
-	MarshalJSON: [Int!]!
-	MarshalText: [Int!]!
-	Minute: Int!
-	Month: Int!
-	Nanosecond: Int!
-	Round(arg1: Int!): Time!
-	Second: Int!
-	String: String!
-	Sub(wall: Int!, ext: Int!, loc: LocationInput): Int!
-	Truncate(arg1: Int!): Time!
-	Unix: Int!
-	UnixMicro: Int!
-	UnixMilli: Int!
-	UnixNano: Int!
-	UTC: Time!
-	wall: Int!
-	Weekday: Int!
-	Year: Int!
-	YearDay: Int!
-}
 
 type TimeUpdate {
 	formatted: String!
@@ -266,20 +200,15 @@ type Widget {
 
 type WidgetUpdate {
 	action: String!
-	timestamp: Time!
+	timestamp: DateTime!
 	widget: Widget!
 }
 
-type zone {
-	isDST: Boolean!
-	name: String!
-	offset: Int!
-}
-
-type zoneTrans {
-	index: Int!
-	isstd: Boolean!
-	isutc: Boolean!
-	when: Int!
-}
+scalar DateTime # RFC3339 formatted date-time string
+scalar EmailAddress # Valid email address
+scalar EmployeeID # Unique identifier for employees
+scalar HexColor # Hexadecimal color representation (e.g., #FF0000)
+scalar Money # Monetary amount in cents
+scalar ProductID # Unique identifier for products
+scalar URL # Valid URL
 

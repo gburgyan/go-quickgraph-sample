@@ -626,10 +626,10 @@ GRAPHQL http://localhost:8080/graphql
 ### Subscribe to Current Time
 # This subscription emits the current time at specified intervals
 subscription CurrentTime {
-    currentTime(intervalMs: 1000) {
-        timestamp
-        formatted
-    }
+currentTime(intervalMs: 1000) {
+timestamp
+formatted
+}
 }
 
 ### Subscribe to All Product Updates
@@ -642,12 +642,12 @@ subscription ProductUpdates {
             price
             status
             category {
-                name
-            }
-        }
-        action
-        timestamp
-    }
+name
+}
+}
+action
+timestamp
+}
 }
 
 ### Subscribe to Product Updates by Category
@@ -661,8 +661,8 @@ subscription ProductUpdatesByCategory($categoryId: Int\!) {
             status
         }
         action
-        timestamp
-    }
+timestamp
+}
 }
 
 # Variables:
@@ -681,8 +681,8 @@ subscription WidgetUpdates($widgetId: Int) {
             quantity
         }
         action
-        timestamp
-    }
+timestamp
+}
 }
 
 # Variables (optional - omit to get all widget updates):
@@ -693,12 +693,12 @@ subscription WidgetUpdates($widgetId: Int) {
 ### Subscribe to Order Status Updates
 # Track the status of a specific order as it progresses
 subscription OrderStatus($orderId: String\!) {
-    orderStatusUpdates(orderId: $orderId) {
-        orderId
-        status
-        message
-        timestamp
-    }
+orderStatusUpdates(orderId: $orderId) {
+orderId
+status
+message
+timestamp
+}
 }
 
 # Variables:
@@ -866,4 +866,178 @@ query ConcreteTypesIntrospection {
         }
     }
 }
-EOF < /dev/null
+
+###############################################
+### CUSTOM SCALAR EXAMPLES
+###############################################
+
+### Validate Email Address Scalar
+GRAPHQL http://localhost:8080/graphql
+
+query ValidateEmail {
+    validateEmail(email: "user@example.com")
+}
+
+### Validate Invalid Email (will return false or error)
+GRAPHQL http://localhost:8080/graphql
+
+query ValidateInvalidEmail {
+    validateEmail(email: "invalid-email")
+}
+
+### Create Colored Product with Custom Scalars
+GRAPHQL http://localhost:8080/graphql
+
+mutation CreateColoredProduct {
+    createColoredProduct(
+        name: "Ruby Red Widget"
+        price: 2999
+        color: "#FF0000"
+    ) {
+        id
+        name
+        price
+        color
+    }
+}
+
+### Create Colored Product with Variables
+GRAPHQL http://localhost:8080/graphql
+
+mutation CreateColoredProductWithVars($name: String!, $price: Money!, $color: HexColor!) {
+    createColoredProduct(
+        name: $name
+        price: $price
+        color: $color
+    ) {
+        id
+        name
+        price
+        color
+    }
+}
+
+{
+    "name": "Emerald Green Gadget",
+    "price": 4500,
+    "color": "#00FF00"
+}
+
+### Get Employee by Custom ID Scalar
+GRAPHQL http://localhost:8080/graphql
+
+query GetEmployeeByScalarID {
+    getEmployeeByIDScalar(id: "1") {
+        ID
+        Name
+        Email
+    }
+}
+
+### Get Server Start Time (DateTime Scalar)
+GRAPHQL http://localhost:8080/graphql
+
+query GetServerStartTime {
+    getServerStartTime
+}
+
+### Multiple Scalar Examples in One Query
+GRAPHQL http://localhost:8080/graphql
+
+query MultipleScalarExamples {
+    validateEmail(email: "test@domain.com")
+    getServerStartTime
+}
+
+### Custom Scalar Schema Introspection
+GRAPHQL http://localhost:8080/graphql
+
+query CustomScalarIntrospection {
+    emailAddress: __type(name: "EmailAddress") {
+        name
+        kind
+        description
+    }
+    hexColor: __type(name: "HexColor") {
+        name
+        kind
+        description
+    }
+    money: __type(name: "Money") {
+        name
+        kind
+        description
+    }
+    dateTime: __type(name: "DateTime") {
+        name
+        kind
+        description
+    }
+    employeeID: __type(name: "EmployeeID") {
+        name
+        kind
+        description
+    }
+    productID: __type(name: "ProductID") {
+        name
+        kind
+        description
+    }
+}
+
+### Test Scalar Validation - Invalid Color (will fail)
+GRAPHQL http://localhost:8080/graphql
+
+mutation TestInvalidColor {
+    createColoredProduct(
+        name: "Invalid Color Product"
+        price: 1000
+        color: "not-a-color"
+    ) {
+        id
+    }
+}
+
+### Test Different Color Formats
+GRAPHQL http://localhost:8080/graphql
+
+mutation TestShortColorFormat {
+    createColoredProduct(
+        name: "Blue Widget"
+        price: 1500
+        color: "#00F"
+    ) {
+        id
+        name
+        color
+    }
+}
+
+### Complex Example with Multiple Custom Scalars
+GRAPHQL http://localhost:8080/graphql
+
+mutation ComplexScalarExample($productData: String!, $amount: Money!, $userEmail: EmailAddress!) {
+    # Create a colored product
+    product: createColoredProduct(
+        name: $productData
+        price: $amount
+        color: "#FFD700"
+    ) {
+        id
+        name
+        price
+        color
+    }
+
+    # Validate the email
+    emailValid: validateEmail(email: $userEmail)
+
+    # Get current server time
+    timestamp: getServerStartTime
+}
+
+{
+  "productData": "Golden Special Edition",
+  "amount": 9999,
+  "userEmail": "customer@shop.com"
+}

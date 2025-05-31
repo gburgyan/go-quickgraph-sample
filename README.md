@@ -11,6 +11,7 @@ This sample application demonstrates a wide range of features available in the [
 - **Introspection**: Built-in schema introspection support
 
 ### Advanced Type System
+- **Custom Scalars**: DateTime, Money, HexColor, EmailAddress, ProductID, EmployeeID, URL with validation
 - **Interfaces**: Employee interface implemented by Developer and Manager types
 - **Union Types**: Search results that can return multiple types (Widget, Product, Employee)
 - **Enums**: ProductStatus and UserRole enums with validation
@@ -94,6 +95,28 @@ go run ./cmd/server -query 'mutation { CreateWidget(widget: {name: "Test", price
 
 # Complex query with fragments
 go run ./cmd/server -query 'query { GetEmployee(id: 1) { __typename ... on Developer { Name ProgrammingLanguages } ... on Manager { Name Department } } }'
+
+# Custom Scalar Examples
+go run ./cmd/server -query 'query { validateEmail(email: "user@example.com") }'
+go run ./cmd/server -query 'mutation { createColoredProduct(name: "Red Widget", price: 2500, color: "#FF0000") { id name price color } }'
+go run ./cmd/server -query 'query { getEmployeeByIDScalar(id: "1") { ID Name Email } }'
+```
+
+### Custom Scalar Types
+The sample demonstrates several custom scalar types with validation:
+
+```bash
+# Email validation
+go run ./cmd/server -query 'query { validateEmail(email: "test@example.com") }'
+
+# Colored product with Money and HexColor scalars
+go run ./cmd/server -query 'mutation { createColoredProduct(name: "Blue Widget", price: 1500, color: "#0000FF") { id name price color } }'
+
+# Invalid color (will fail validation)
+go run ./cmd/server -query 'mutation { createColoredProduct(name: "Bad Widget", price: 1000, color: "invalid") { id } }'
+
+# Different color formats
+go run ./cmd/server -query 'mutation { createColoredProduct(name: "Green Widget", price: 2000, color: "#0F0") { id color } }'
 ```
 
 This is particularly useful for:
@@ -122,6 +145,7 @@ open subscription_client.html
 Use the examples in `SampleCommands.http` with any HTTP client that supports GraphQL syntax. The file includes examples for:
 
 - Basic queries and mutations
+- **Custom scalar types** (DateTime, Money, HexColor, EmailAddress, etc.)
 - Interface types with fragments
 - Union type searches
 - Enum usage
