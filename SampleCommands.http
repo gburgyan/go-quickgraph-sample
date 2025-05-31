@@ -885,13 +885,13 @@ query ValidateInvalidEmail {
     validateEmail(email: "invalid-email")
 }
 
-### Create Colored Product with Custom Scalars
+### Create Colored Product with Custom Scalars (Money format: "amount currency")
 GRAPHQL http://localhost:8080/graphql
 
 mutation CreateColoredProduct {
     createColoredProduct(
         name: "Ruby Red Widget",
-        price: 2999,
+        price: "29.99 USD",
         color: "#FF0000"
     ) {
         id
@@ -901,7 +901,7 @@ mutation CreateColoredProduct {
     }
 }
 
-### Create Colored Product with Variables
+### Create Colored Product with Variables (Money format)
 GRAPHQL http://localhost:8080/graphql
 
 mutation CreateColoredProductWithVars($name: String!, $price: Money!, $color: HexColor!) {
@@ -919,7 +919,7 @@ mutation CreateColoredProductWithVars($name: String!, $price: Money!, $color: He
 
 {
     "name": "Emerald Green Gadget",
-    "price": 4500,
+    "price": "45.00 EUR",
     "color": "#00FF00"
 }
 
@@ -1004,11 +1004,12 @@ GRAPHQL http://localhost:8080/graphql
 mutation TestShortColorFormat {
     createColoredProduct(
         name: "Blue Widget",
-        price: 1500,
+        price: "15.00 GBP",
         color: "#00F"
     ) {
         id
         name
+        price
         color
     }
 }
@@ -1038,6 +1039,72 @@ mutation ComplexScalarExample($productData: String!, $amount: Money!, $userEmail
 
 {
   "productData": "Golden Special Edition",
-  "amount": 9999,
+  "amount": "99.99 USD",
   "userEmail": "customer@shop.com"
+}
+
+### JSON Scalar Examples
+GRAPHQL http://localhost:8080/graphql
+
+query GetSampleJSON {
+    getSampleJSONData
+}
+
+### JSON Scalar Processing
+GRAPHQL http://localhost:8080/graphql
+
+query ProcessJSONWithVars($metadata: JSON!) {
+    processJSONMetadata(metadata: $metadata) {
+        totalKeys
+        typeBreakdown
+        hasNestedObjects
+        hasArrays
+    }
+}
+
+{
+  "metadata": {
+    "product": "Smart Watch",
+    "features": ["GPS", "Heart Rate", "Waterproof"],
+    "specs": {
+      "battery": "7 days",
+      "weight": "45g",
+      "display": "AMOLED"
+    },
+    "price": 299.99,
+    "inStock": true
+  }
+}
+
+### Create Product with JSON Metadata
+GRAPHQL http://localhost:8080/graphql
+
+mutation CreateProductWithJSON($name: String!, $price: Money!, $metadata: JSON!) {
+    createProductWithMetadata(
+        name: $name,
+        price: $price,
+        metadata: $metadata
+    ) {
+        id
+        name
+        price
+        metadata
+    }
+}
+
+{
+  "name": "Advanced Smart Device",
+  "price": "199.99 CAD",
+  "metadata": {
+    "category": "Electronics",
+    "tags": ["smart", "wireless", "premium"],
+    "technical": {
+      "cpu": "ARM Cortex-M4",
+      "memory": "256KB",
+      "connectivity": ["WiFi", "Bluetooth 5.0"]
+    },
+    "warranty": "2 years",
+    "energyRating": "A++",
+    "certified": true
+  }
 }

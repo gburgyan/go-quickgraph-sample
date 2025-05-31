@@ -11,8 +11,10 @@ type Query {
 	Search(query: String!): [SearchResult!]!
 	getCurrentDateTime: DateTime!
 	getEmployeeByIDScalar(id: EmployeeID!): Employee
+	getSampleJSONData: JSON!
 	getServerStartTime: DateTime!
 	greeting(name: String!): GreetingResponse!
+	processJSONMetadata(metadata: JSON!): JSON!
 	validateEmail(email: EmailAddress!): Boolean!
 }
 
@@ -25,6 +27,7 @@ type Mutation {
 	UpdateProductStatus(id: Int!, status: String!): Product
 	UpdateWidget(widget: WidgetInput!): Widget!
 	createColoredProduct(name: String!, price: Money!, color: HexColor!): ColoredProduct!
+	createProductWithMetadata(name: String!, price: Money!, metadata: JSON!): ProductWithMetadata!
 }
 
 type Subscription {
@@ -166,6 +169,13 @@ type ProductUpdate {
 	timestamp: DateTime!
 }
 
+type ProductWithMetadata {
+	id: ProductID!
+	metadata: JSON!
+	name: String!
+	price: Money!
+}
+
 type Review {
 	Comment: String!
 	CreatedAt: String!
@@ -208,7 +218,8 @@ scalar DateTime # RFC3339 formatted date-time string
 scalar EmailAddress # Valid email address
 scalar EmployeeID # Unique identifier for employees
 scalar HexColor # Hexadecimal color representation (e.g., #FF0000)
-scalar Money # Monetary amount in cents
+scalar JSON # Arbitrary JSON data
+scalar Money # Monetary amount with currency (e.g., '123.45 USD')
 scalar ProductID # Unique identifier for products
 scalar URL # Valid URL
 
