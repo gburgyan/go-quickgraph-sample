@@ -311,6 +311,8 @@ func isValidEmail(email string) bool {
 
 // String formats a Money value as "amount currency" string (e.g., "123.45 USD")
 func (m Money) String() string {
+	// This is for example purposes; in production, you might want to use a library
+	// for currency formatting!
 	return fmt.Sprintf("%.2f %s", float64(m.Amount)/100, m.Currency)
 }
 
