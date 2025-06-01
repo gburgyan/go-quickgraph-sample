@@ -136,9 +136,7 @@ func WidgetUpdates(ctx context.Context, widgetId int) <-chan WidgetUpdate {
 	// Generate unique subscription ID
 	subId := fmt.Sprintf("widget-sub-%d", time.Now().UnixNano())
 
-	fmt.Printf("🔗 NEW WIDGET SUBSCRIPTION CALLED: %s (filter: widgetId=%v)\n", subId, widgetId)
-	fmt.Printf("🔗 Context: %+v\n", ctx)
-	fmt.Printf("🔗 WidgetId pointer: %p, value: %v\n", widgetId, widgetId)
+	fmt.Printf("🔗 New widget subscription: %s (filter: widgetId=%v)\n", subId, widgetId)
 
 	// Register subscriber
 	widgetSubsMutex.Lock()

@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -26,6 +27,35 @@ func main() {
 	graph := quickgraph.Graphy{
 		EnableTiming: true,
 	}
+
+	// Set up error handler for proper error logging
+	graph.SetErrorHandler(quickgraph.ErrorHandlerFunc(func(ctx context.Context, category quickgraph.ErrorCategory, err error, details map[string]interface{}) {
+		// Create a detailed error message with context
+		var detailsStr []string
+		for key, value := range details {
+			detailsStr = append(detailsStr, fmt.Sprintf("%s=%v", key, value))
+		}
+		detailsContext := ""
+		if len(detailsStr) > 0 {
+			detailsContext = fmt.Sprintf(" [%s]", strings.Join(detailsStr, ", "))
+		}
+
+		// Log with appropriate level based on error category
+		switch category {
+		case quickgraph.ErrorCategoryValidation:
+			log.Printf("⚠️  VALIDATION ERROR: %v%s", err, detailsContext)
+		case quickgraph.ErrorCategoryExecution:
+			log.Printf("🔴 EXECUTION ERROR: %v%s", err, detailsContext)
+		case quickgraph.ErrorCategoryWebSocket:
+			log.Printf("🔌 WEBSOCKET ERROR: %v%s", err, detailsContext)
+		case quickgraph.ErrorCategoryHTTP:
+			log.Printf("🌐 HTTP ERROR: %v%s", err, detailsContext)
+		case quickgraph.ErrorCategoryInternal:
+			log.Printf("💥 INTERNAL ERROR: %v%s", err, detailsContext)
+		default:
+			log.Printf("❓ UNKNOWN ERROR [%s]: %v%s", category, err, detailsContext)
+		}
+	}))
 
 	// Configure query limits for DoS protection
 	graph.QueryLimits = &quickgraph.QueryLimits{
