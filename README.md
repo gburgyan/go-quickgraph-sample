@@ -163,17 +163,44 @@ Use the examples in `SampleCommands.http` with any HTTP client that supports Gra
 
 See [SUBSCRIPTIONS.md](SUBSCRIPTIONS.md) for detailed subscription documentation.
 
-## Authentication
+## ⚠️ **IMPORTANT SECURITY NOTICE** ⚠️
 
-The sample includes a simple authentication middleware. To test authenticated endpoints:
+**THIS IS A DEMONSTRATION APPLICATION - NOT PRODUCTION READY**
+
+This sample application is designed to showcase the features of the go-quickgraph library and is **intentionally simplified for educational purposes**. It contains several security vulnerabilities that make it **unsuitable for production deployment**:
+
+- **Hardcoded authentication tokens** for demo purposes
+- **No query complexity limits** configured (allows DoS attacks)
+- **Introspection enabled** (exposes internal schema)
+- **Permissive CORS settings** (allows cross-origin access)
+- **No rate limiting** or input validation
+- **Development-mode error handling** (may leak sensitive information)
+
+### 🔒 **For Production Use**
+
+Before deploying any GraphQL service based on this sample:
+
+1. **Read the [Security Documentation](../go-quickgraph/docs/SECURITY_API.md)** in the main library
+2. **Implement proper authentication** (replace hardcoded tokens with JWT/OAuth)
+3. **Configure query limits** and memory protection
+4. **Disable introspection** in production environments
+5. **Implement proper CORS policies** and security headers
+6. **Add rate limiting** and input validation
+7. **Enable production mode** for proper error handling
+
+### Authentication (Demo Only)
+
+The sample includes a **demonstration-only** authentication middleware with hardcoded tokens. **DO NOT use these in production**:
 
 ```bash
-# Admin user
+# Demo admin user (INSECURE - hardcoded token)
 Authorization: Bearer admin-token
 
-# Regular user  
+# Demo regular user (INSECURE - hardcoded token)
 Authorization: Bearer user-token
 ```
+
+**⚠️ These tokens are publicly known and provide no security.**
 
 ## Generated Schema
 
