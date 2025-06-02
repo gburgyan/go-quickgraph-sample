@@ -28,6 +28,21 @@ func main() {
 		EnableTiming: true,
 	}
 
+	// Configure CORS to allow GraphQL playgrounds
+	graph.CORSSettings = &quickgraph.CORSSettings{
+		AllowedOrigins: []string{
+			"*", // Allow all origins for development
+			// For production, use specific origins:
+			// "https://studio.apollographql.com",
+			// "http://localhost:3000",
+		},
+		AllowedMethods:        []string{"GET", "POST", "OPTIONS"},
+		AllowedHeaders:        []string{"Content-Type", "Authorization"},
+		AllowCredentials:      false, // Set to true if you need cookies/auth
+		MaxAge:                86400, // 24 hours
+		EnableForAllResponses: true,  // Important for GraphQL responses
+	}
+
 	// Set up error handler for proper error logging
 	graph.SetErrorHandler(quickgraph.ErrorHandlerFunc(func(ctx context.Context, category quickgraph.ErrorCategory, err error, details map[string]interface{}) {
 		// Create a detailed error message with context
