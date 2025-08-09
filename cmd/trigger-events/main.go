@@ -190,22 +190,22 @@ func main() {
 	fmt.Println("GraphQL Subscription Trigger Example")
 	fmt.Println("====================================")
 	fmt.Println("This will trigger events that subscription clients can observe.")
-	fmt.Println("Make sure the server is running and you have subscription clients connected.\n")
+	fmt.Println("Make sure the server is running and you have subscription clients connected.")
 
 	// Trigger different types of updates
 	for i := 0; i < 3; i++ {
 		fmt.Printf("\n--- Trigger round %d ---\n", i+1)
-		
+
 		// Trigger product updates
 		fmt.Println("Triggering product update...")
 		triggerProductUpdate()
-		
+
 		time.Sleep(2 * time.Second)
-		
+
 		// Trigger widget updates
 		fmt.Println("Triggering widget update...")
 		triggerWidgetUpdate()
-		
+
 		time.Sleep(3 * time.Second)
 	}
 

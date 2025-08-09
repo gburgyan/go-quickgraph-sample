@@ -6,10 +6,15 @@ import (
 	"strings"
 )
 
-
 func RegisterSearchHandlers(ctx context.Context, graphy *quickgraph.Graphy) {
 	// Register the search query
-	graphy.RegisterQuery(ctx, "Search", Search, "query")
+	graphy.RegisterFunction(ctx, quickgraph.FunctionDefinition{
+		Name:           "Search",
+		Function:       Search,
+		ParameterNames: []string{"query"},
+		Description:    strPtr("Searches across widgets, products, and employees by name, email, or description"),
+		Mode:           quickgraph.ModeQuery,
+	})
 }
 
 // SearchResultUnion explicitly defines the union type
@@ -17,6 +22,13 @@ type SearchResultUnion struct {
 	Widget   *Widget
 	Product  *Product
 	Employee *Employee
+}
+
+// GraphTypeExtension implements the GraphTypeExtension interface for SearchResultUnion
+func (SearchResultUnion) GraphTypeExtension() quickgraph.GraphTypeInfo {
+	return quickgraph.GraphTypeInfo{
+		Description: "Union type representing search results across different entity types",
+	}
 }
 
 // Search demonstrates union types by returning different types based on search
@@ -36,7 +48,7 @@ func Search(query string) ([]SearchResultUnion, error) {
 	}
 	widgetsMux.RUnlock()
 
-	// Search products  
+	// Search products
 	productsMux.RLock()
 	for _, p := range products {
 		if strings.Contains(strings.ToLower(p.Name), query) ||
@@ -108,7 +120,7 @@ func SearchV2(query string) ([]SearchResult, error) {
 		}
 	}
 
-	// Note: This approach works but the first approach with []interface{} 
+	// Note: This approach works but the first approach with []interface{}
 	// is more flexible and idiomatic for go-quickgraph
 
 	return results, nil

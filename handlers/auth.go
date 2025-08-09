@@ -18,7 +18,7 @@ const (
 func RegisterAuthHandlers(ctx context.Context, graphy *quickgraph.Graphy) {
 	// Register query that uses context
 	graphy.RegisterQuery(ctx, "GetCurrentUser", GetCurrentUser)
-	
+
 	// Register the PersonalDetails method on Employee interface
 	// Note: This registration might not be necessary as methods are usually auto-discovered
 	// graphy.RegisterFunction(ctx, (*Employee).PersonalDetails)
@@ -49,7 +49,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		// In a real app, you'd validate JWT token or session here
 		// For demo, we'll simulate authentication based on a header
 		authHeader := r.Header.Get("Authorization")
-		
+
 		if authHeader != "" {
 			// Simulate user lookup
 			var user *User
@@ -65,14 +65,14 @@ func AuthMiddleware(next http.Handler) http.Handler {
 					user = &users[1]
 				}
 			}
-			
+
 			if user != nil {
 				// Add user to context
 				ctx := context.WithValue(r.Context(), UserContextKey, user)
 				r = r.WithContext(ctx)
 			}
 		}
-		
+
 		next.ServeHTTP(w, r)
 	})
 }
@@ -83,7 +83,7 @@ func GetUserFromAuthHeader(authHeader string) *User {
 	if authHeader == "" {
 		return nil
 	}
-	
+
 	switch authHeader {
 	case "Bearer admin-token":
 		if len(users) > 0 {
@@ -94,7 +94,7 @@ func GetUserFromAuthHeader(authHeader string) *User {
 			return &users[1]
 		}
 	}
-	
+
 	return nil
 }
 
@@ -116,7 +116,7 @@ func CreateProductWithAuth(ctx context.Context, input ProductInput) (*Product, e
 	}
 
 	// Proceed with normal creation
-	return CreateProduct(input)
+	return CreateProduct(ctx, input)
 }
 
 // PersonalDetails method demonstrates field-level authorization
@@ -138,7 +138,7 @@ func (e *Employee) PersonalDetails(ctx context.Context) (*PersonalInfo, error) {
 		return &PersonalInfo{
 			Salary:      e.Salary,
 			Email:       e.Email,
-			PhoneNumber: "+1-555-0123", // Mock data
+			PhoneNumber: "+1-555-0123",               // Mock data
 			Address:     "123 Main St, Anytown, USA", // Mock data
 		}, nil
 	}
@@ -148,8 +148,8 @@ func (e *Employee) PersonalDetails(ctx context.Context) (*PersonalInfo, error) {
 
 // PersonalInfo contains sensitive employee information
 type PersonalInfo struct {
-	Salary      float64 `json:"salary"`
-	Email       string  `json:"email"`
-	PhoneNumber string  `json:"phoneNumber"`
-	Address     string  `json:"address"`
+	Salary      float64 `graphy:"salary"`
+	Email       string  `graphy:"email"`
+	PhoneNumber string  `graphy:"phoneNumber"`
+	Address     string  `graphy:"address"`
 }

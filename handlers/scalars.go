@@ -26,8 +26,8 @@ type HexColor string
 
 // Money represents a monetary amount with currency
 type Money struct {
-	Amount   int64  `json:"amount"`   // Amount in cents
-	Currency string `json:"currency"` // Currency code (e.g., "USD", "EUR")
+	Amount   int64  `graphy:"amount"`   // Amount in cents
+	Currency string `graphy:"currency"` // Currency code (e.g., "USD", "EUR")
 }
 
 // UnmarshalJSON implements custom JSON unmarshaling for Money
@@ -406,10 +406,10 @@ func GetServerStartTime() time.Time {
 
 // ColoredProduct represents a product with color information
 type ColoredProduct struct {
-	ID    ProductID `json:"id"`
-	Name  string    `json:"name"`
-	Price Money     `json:"price"`
-	Color HexColor  `json:"color"`
+	ID    ProductID `graphy:"id"`
+	Name  string    `graphy:"name"`
+	Price Money     `graphy:"price"`
+	Color HexColor  `graphy:"color"`
 }
 
 // CreateColoredProduct demonstrates HexColor and Money scalar usage
@@ -429,10 +429,10 @@ func ValidateEmail(email EmailAddress) bool {
 
 // ProductWithMetadata demonstrates JSON scalar usage
 type ProductWithMetadata struct {
-	ID       ProductID              `json:"id"`
-	Name     string                 `json:"name"`
-	Price    Money                  `json:"price"`
-	Metadata map[string]interface{} `json:"metadata"`
+	ID       ProductID              `graphy:"id"`
+	Name     string                 `graphy:"name"`
+	Price    Money                  `graphy:"price"`
+	Metadata map[string]interface{} `graphy:"metadata"`
 }
 
 // CreateProductWithMetadata demonstrates JSON scalar usage

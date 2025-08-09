@@ -11,24 +11,24 @@ import (
 
 // ProductUpdate represents a product update event
 type ProductUpdate struct {
-	Product   Product   `json:"product"`
-	Action    string    `json:"action"` // "created", "updated", "deleted"
-	Timestamp time.Time `json:"timestamp"`
+	Product   Product   `graphy:"product"`
+	Action    string    `graphy:"action"` // "created", "updated", "deleted"
+	Timestamp time.Time `graphy:"timestamp"`
 }
 
 // WidgetUpdate represents a widget update event
 type WidgetUpdate struct {
-	Widget    Widget    `json:"widget"`
-	Action    string    `json:"action"` // "created", "updated", "deleted"
-	Timestamp time.Time `json:"timestamp"`
+	Widget    Widget    `graphy:"widget"`
+	Action    string    `graphy:"action"` // "created", "updated", "deleted"
+	Timestamp time.Time `graphy:"timestamp"`
 }
 
 // OrderUpdate represents an order update event
 type OrderUpdate struct {
-	OrderID   string    `json:"orderId"`
-	Status    string    `json:"status"`
-	Message   string    `json:"message"`
-	Timestamp time.Time `json:"timestamp"`
+	OrderID   string    `graphy:"orderId"`
+	Status    string    `graphy:"status"`
+	Message   string    `graphy:"message"`
+	Timestamp time.Time `graphy:"timestamp"`
 }
 
 // Global subscriber registries for broadcasting updates
@@ -276,8 +276,8 @@ func CurrentTime(ctx context.Context, intervalMs int) <-chan TimeUpdate {
 
 // TimeUpdate represents a time update message
 type TimeUpdate struct {
-	Timestamp int64  `json:"timestamp"`
-	Formatted string `json:"formatted"`
+	Timestamp int64  `graphy:"timestamp"`
+	Formatted string `graphy:"formatted"`
 }
 
 // RegisterSubscriptionHandlers registers all subscription handlers

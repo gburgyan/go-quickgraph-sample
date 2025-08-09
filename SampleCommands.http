@@ -1,32 +1,16 @@
-### Get the schema
-GET http://localhost:8080/graphql
+### Sample GraphQL Queries and Mutations
 
 ### Simple Query
 GRAPHQL http://localhost:8080/graphql
 
-{
-    greeting(name: "George") {
-        Greeting
-    }
+query SimpleQuery {
+    greeting(name: "GraphQL")
 }
 
-### Variable Example
+### Get All Widgets
 GRAPHQL http://localhost:8080/graphql
 
-query greeting($name: String!) {
-    greeting(name: $name) {
-        Greeting
-    }
-}
-
-{
-  "name": "George"
-}
-
-### Get Widgets
-GRAPHQL http://localhost:8080/graphql
-
-query GetWidgets {
+query GetAllWidgets {
     GetWidgets {
         id
         name
@@ -35,10 +19,10 @@ query GetWidgets {
     }
 }
 
-### Get a specific widget
+### Get Widget by ID
 GRAPHQL http://localhost:8080/graphql
 
-query GetWidget($id: ID!) {
+query GetWidget($id: Int!) {
     GetWidget(id: $id) {
         id
         name
@@ -51,10 +35,10 @@ query GetWidget($id: ID!) {
   "id": 1
 }
 
-### Add Widget
+### Create Widget
 GRAPHQL http://localhost:8080/graphql
 
-mutation AddWidget($widget: WidgetInput!) {
+mutation CreateWidget($widget: WidgetCreateInput!) {
     CreateWidget(widget: $widget) {
         id
         name
@@ -65,16 +49,16 @@ mutation AddWidget($widget: WidgetInput!) {
 
 {
   "widget": {
-    "name": "Widget 42",
-    "price": 69.23,
-    "quantity": 10
+    "name": "New Widget",
+    "price": 19.99,
+    "quantity": 100
   }
 }
 
 ### Update Widget
 GRAPHQL http://localhost:8080/graphql
 
-mutation UpdateWidget($widget: WidgetInput!) {
+mutation UpdateWidget($widget: Widget!) {
     UpdateWidget(widget: $widget) {
         id
         name
@@ -86,65 +70,10 @@ mutation UpdateWidget($widget: WidgetInput!) {
 {
   "widget": {
     "id": 1,
-    "name": "Widget 42",
-    "price": 69.23,
-    "quantity": 105
+    "name": "Updated Widget",
+    "price": 29.99,
+    "quantity": 50
   }
-}
-
-### Update Widget - Error case (note the id)
-GRAPHQL http://localhost:8080/graphql
-
-mutation UpdateWidget($widget: WidgetInput!) {
-    UpdateWidget(widget: $widget) {
-        id
-        name
-        price
-        quantity
-    }
-}
-
-{
-  "widget": {
-    "id": -1,
-    "name": "Widget 42",
-    "price": 2.50,
-    "quantity": 5
-  }
-}
-
-### Get Schema
-GRAPHQL http://localhost:8080/graphql
-
-query IntrospectionQuery {
-    __schema {
-        queryType {
-            name
-            fields {
-                name
-            }
-            inputFields {
-                name
-            }
-        }
-        mutationType {
-            name
-            fields {
-                name
-            }
-        }
-        types {
-            name
-            kind
-            fields {
-                name
-                type {
-                    name
-                    kind
-                }
-            }
-        }
-    }
 }
 
 ### Get All Employees (Interface Example)
@@ -247,39 +176,37 @@ GRAPHQL http://localhost:8080/graphql
 query TestMultipleEmployees {
     developer: GetEmployee(id: 1) {
         __typename
-        Name
         ... on Developer {
+            Name
             ProgrammingLanguages
             GithubUsername
         }
     }
     manager: GetEmployee(id: 2) {
         __typename
-        Name
         ... on Manager {
+            Name
             Department
             TeamSize
-        }
-    }
-    anotherDev: GetEmployee(id: 3) {
-        __typename
-        Name
-        ... on Developer {
-            ProgrammingLanguages
+            Reports {
+                __typename
+                ID
+                Name
+            }
         }
     }
 }
 
-### Create Employee (Developer) - Using Union Return Type
+### Create Employee (Union Type Example)
 GRAPHQL http://localhost:8080/graphql
 
-mutation CreateDeveloper {
-    CreateEmployee(input: {
+mutation CreateEmployees {
+    developer: CreateEmployee(input: {
         name: "Alice Developer"
         email: "alice@example.com"
-        salary: 95000
+        salary: 110000
         type: DEVELOPER
-        programmingLanguages: ["Go", "TypeScript", "Python"]
+        programmingLanguages: ["TypeScript", "React", "Node.js"]
         githubUsername: "alice-dev"
     }) {
         __typename
@@ -291,13 +218,8 @@ mutation CreateDeveloper {
             GithubUsername
         }
     }
-}
-
-### Create Employee (Manager) - Using Union Return Type
-GRAPHQL http://localhost:8080/graphql
-
-mutation CreateManager {
-    CreateEmployee(input: {
+    
+    manager: CreateEmployee(input: {
         name: "Bob Manager"
         email: "bob@example.com"
         salary: 130000
@@ -397,6 +319,7 @@ query GetProducts {
             createdAt
             user {
                 username
+                email
                 role
             }
         }
@@ -404,60 +327,30 @@ query GetProducts {
     }
 }
 
-### Get Categories with Products
-GRAPHQL http://localhost:8080/graphql
-
-query GetCategories {
-    GetCategories {
-        id
-        name
-        description
-        products {
-            id
-            name
-            price
-            status
-            inStock
-        }
-    }
-}
-
 ### Create Product
 GRAPHQL http://localhost:8080/graphql
 
-mutation CreateProduct {
-    CreateProduct(input: {
-        name: "Gaming Mouse"
-        description: "High-precision gaming mouse with RGB"
-        price: 79.99
-        categoryId: 1
-    }) {
+mutation CreateProduct($input: ProductInput!) {
+    CreateProduct(input: $input) {
         id
         name
         description
         price
         status
+        inStock
         category {
             name
         }
     }
 }
 
-### Update Product Status (Enum Example)
-GRAPHQL http://localhost:8080/graphql
-
-mutation UpdateStatus($id: Int!, $status: ProductStatus!) {
-    UpdateProductStatus(id: $id, status: $status) {
-        id
-        name
-        status
-        inStock
-    }
-}
-
 {
-  "id": 1,
-  "status": "ACTIVE"
+  "input": {
+    "name": "GraphQL Book",
+    "description": "A comprehensive guide to GraphQL",
+    "price": 49.99,
+    "categoryId": 2
+  }
 }
 
 ### Add Product Review
@@ -479,153 +372,115 @@ mutation AddReview($productId: Int!, $review: ReviewInput!) {
   "productId": 1,
   "review": {
     "rating": 5,
-    "comment": "Amazing laptop, highly recommend!"
+    "comment": "Excellent laptop! Very fast and reliable."
   }
 }
 
-### Get Current User (Context Example)
-GRAPHQL http://localhost:8080/graphql
-Authorization: Bearer admin-token
-
-query GetCurrentUser {
-    GetCurrentUser {
-        id
-        username
-        email
-        role
-    }
-}
-
-### Get Current User (Not Authenticated)
+### Get Categories with Products
 GRAPHQL http://localhost:8080/graphql
 
-query GetCurrentUser {
-    GetCurrentUser {
-        id
-        username
-        email
-        role
-    }
-}
-
-### Complex Query with Multiple Features
-GRAPHQL http://localhost:8080/graphql
-
-query ComplexQuery {
-    GetWidgets {
+query GetCategoriesWithProducts {
+    GetCategories {
         id
         name
-        price
-    }
-    GetManagers {
-        name
-        department
-        reports {
-            ... on Developer {
-                name
-                programmingLanguages
-            }
-        }
-    }
-    GetProducts(filter: { status: ACTIVE }) {
-        name
-        price
-        reviews {
-            rating
-        }
-        averageRating
-    }
-    Search(query: "go") {
-        __typename
-        ... on Product {
+        description
+        products {
+            id
             name
             price
-        }
-        ... on Developer {
-            name
-            programmingLanguages
+            status
+            inStock
         }
     }
 }
 
-
-### Complex Query with Multiple Features
-GRAPHQL http://localhost:8080/graphql
-
-{
-    GetAllEmployees {
-        ... on Developer {
-            id
-            name
-            personalDetails {
-                salary
-                email
-                phoneNumber
-                address
-            }
-        }
-        ... on Manager {
-            id
-            name
-            personalDetails {
-                salary
-                email
-                phoneNumber
-                address
-            }
-        }
-    }
-}
-
-
-### Complex Query with methods on interfaces
+### Complex Employee Query with Personal Details
+# Note: PersonalDetails requires authentication (Bearer token)
 GRAPHQL http://localhost:8080/graphql
 Authorization: Bearer admin-token
 
-{
-    GetAllEmployees {
-        ... on Developer {
-            id
-            name
-            email
+query GetEmployeeWithPersonalDetails($id: Int!) {
+    GetEmployee(id: $id) {
+        __typename
+        ID
+        Name
+        Email
+        PersonalDetails {
+            phoneNumber
+            address
             salary
-            hireDate
-            personalDetails {
-                salary
-                email
-                phoneNumber
-                address
-            }
+            email
         }
         ... on Manager {
-            id
-            name
-            email
-            salary
-            hireDate
-            department
-            teamSize
-            personalDetails {
-                salary
-                email
-                phoneNumber
-                address
-            }
+            Department
+            TeamSize
         }
     }
 }
 
-### ========================================
-### SUBSCRIPTION EXAMPLES
-### ========================================
-### Note: These are subscription queries that need to be run over WebSocket
-### You can test them using:
-### 1. The subscription_client.html file (open in browser)
-### 2. The subscription_client_example.go (go run subscription_client_example.go)
-### 3. Any GraphQL client that supports subscriptions (e.g., GraphiQL, Playground)
+{
+  "id": 2
+}
 
-### Subscribe to Current Time
-# This subscription emits the current time at specified intervals
+### Admin Create Product (Auth Required)
+GRAPHQL http://localhost:8080/graphql
+Authorization: Bearer admin-token
+
+mutation AdminCreateProduct($input: ProductInput!) {
+    AdminCreateProduct(input: $input) {
+        id
+        name
+        status
+        price
+    }
+}
+
+{
+  "input": {
+    "name": "Premium Product",
+    "description": "A premium product only admins can create",
+    "price": 999.99,
+    "categoryId": 1
+  }
+}
+
+### WebSocket Subscription Example (use ws://localhost:8080/graphql)
+subscription WidgetUpdates($widgetId: Int!) {
+    widgetUpdates(widgetId: $widgetId) {
+        action
+        timestamp
+        widget {
+            id
+            name
+            price
+            quantity
+        }
+    }
+}
+
+{
+  "widgetId": 1
+}
+
+### Product Updates Subscription
+subscription ProductUpdates($categoryId: Int!) {
+    productUpdates(categoryId: $categoryId) {
+        action
+        timestamp
+        product {
+            id
+            name
+            price
+            status
+        }
+    }
+}
+
+{
+  "categoryId": 1
+}
+
+### Current Time Subscription
 subscription CurrentTime {
     currentTime(intervalMs: 1000) {
         timestamp
@@ -633,57 +488,7 @@ subscription CurrentTime {
     }
 }
 
-### Subscribe to Product Updates
-# This subscription notifies about any product creation, update, or deletion
-# Use -1 for categoryId to get updates for all categories
-subscription ProductUpdates($categoryId: Int!) {
-    productUpdates(categoryId: $categoryId) {
-        product {
-            id
-            name
-            price
-            status
-            category {
-                name
-            }
-        }
-        action
-        timestamp
-    }
-}
-
-# Variables:
-# For all categories: { "categoryId": -1 }
-# For specific category: { "categoryId": 1 }
-{
-  "categoryId": -1
-}
-
-### Subscribe to Widget Updates
-# Monitor all widget changes or filter by specific widget ID
-# Use -1 for widgetId to get updates for all widgets
-subscription WidgetUpdates($widgetId: Int!) {
-    widgetUpdates(widgetId: $widgetId) {
-        widget {
-            id
-            name
-            price
-            quantity
-        }
-        action
-        timestamp
-    }
-}
-
-# Variables:
-# For all widgets: { "widgetId": -1 }
-# For specific widget: { "widgetId": 1 }
-{
-  "widgetId": -1
-}
-
-### Subscribe to Order Status Updates
-# Track the status of a specific order as it progresses
+### Order Status Updates Subscription
 subscription OrderStatus($orderId: String!) {
     orderStatusUpdates(orderId: $orderId) {
         orderId
@@ -693,210 +498,116 @@ subscription OrderStatus($orderId: String!) {
     }
 }
 
-# Variables:
 {
-  "orderId": "order-123"
+  "orderId": "ORDER-123"
 }
 
-### ========================================
-### MUTATIONS TO TRIGGER SUBSCRIPTION EVENTS
-### ========================================
-### Use these mutations to trigger events that subscriptions will receive
-
-### Create Product (triggers productUpdates)
+### Multiple Queries in One Request
 GRAPHQL http://localhost:8080/graphql
 
-mutation CreateProductForSubscription {
-    CreateProduct(input: {
-        name: "Subscription Test Product"
-        description: "This product will trigger subscription events"
-        price: 199.99
-        categoryId: 1
-    }) {
-        id
-        name
-        status
-    }
-}
-
-### Update Product Status (triggers productUpdates)
-GRAPHQL http://localhost:8080/graphql
-
-mutation UpdateProductForSubscription($id: Int!) {
-    UpdateProductStatus(id: $id, status: ACTIVE) {
-        id
-        name
-        status
-    }
-}
-
-{
-  "id": 6
-}
-
-### Create Widget (triggers widgetUpdates)
-GRAPHQL http://localhost:8080/graphql
-
-mutation CreateWidgetForSubscription {
-    CreateWidget(widget: {
-        name: "Subscription Test Widget"
-        price: 99.99
-        quantity: 50
-    }) {
-        id
-        name
-        quantity
-    }
-}
-
-### Update Widget (triggers widgetUpdates)
-GRAPHQL http://localhost:8080/graphql
-
-mutation UpdateWidgetForSubscription($id: Int!) {
-    UpdateWidget(widget: {
-        id: $id
-        name: "Updated Subscription Widget"
-        price: 109.99
-        quantity: 75
-    }) {
-        id
-        name
-        quantity
-    }
-}
-
-{
-  "id": 2
-}
-
-
-### Employee Interface Introspection
-# Check how the Employee interface is represented in introspection
-GRAPHQL http://localhost:8080/graphql
-
-query EmployeeInterfaceIntrospection {
-    employeeInterface: __type(name: "IEmployee") {
-        kind
-        name
-        description
-        possibleTypes {
-            name
-            kind
-        }
-        fields {
-            name
-            type {
-                name
-                kind
-            }
-        }
-    }
-    employeeType: __type(name: "Employee") {
-        kind
-        name
-        interfaces {
-            name
-        }
-    }
-}
-
-### EmployeeResult Union Introspection
-# Check the union type used in CreateEmployee mutation
-GRAPHQL http://localhost:8080/graphql
-
-query EmployeeResultUnionIntrospection {
-    __type(name: "EmployeeResult") {
-        kind
-        name
-        description
-        possibleTypes {
-            name
-            kind
-        }
-    }
-}
-
-### Developer and Manager Type Introspection
-# Check what interfaces Developer and Manager implement
-GRAPHQL http://localhost:8080/graphql
-
-query ConcreteTypesIntrospection {
-    developer: __type(name: "Developer") {
-        kind
-        name
-        interfaces {
-            name
-        }
-        fields {
-            name
-            type {
-                name
-                kind
-                ofType {
-                    name
-                    kind
-                }
-            }
-        }
-    }
-    manager: __type(name: "Manager") {
-        kind
-        name
-        interfaces {
-            name
-        }
-        fields {
-            name
-            type {
-                name
-                kind
-                ofType {
-                    name
-                    kind
-                }
-            }
-        }
-    }
-}
-
-###############################################
-### CUSTOM SCALAR EXAMPLES
-###############################################
-
-### Validate Email Address Scalar
-GRAPHQL http://localhost:8080/graphql
-
-query ValidateEmail {
-    validateEmail(email: "user@example.com")
-}
-
-### Validate Invalid Email (will return false or error)
-GRAPHQL http://localhost:8080/graphql
-
-query ValidateInvalidEmail {
-    validateEmail(email: "invalid-email")
-}
-
-### Create Colored Product with Custom Scalars (Money format: "amount currency")
-GRAPHQL http://localhost:8080/graphql
-
-mutation CreateColoredProduct {
-    createColoredProduct(
-        name: "Ruby Red Widget",
-        price: "29.99 USD",
-        color: "#FF0000"
-    ) {
+query MultipleQueries {
+    widgets: GetWidgets {
         id
         name
         price
-        color
+    }
+    
+    employees: GetAllEmployees {
+        __typename
+        ID
+        Name
+        ... on Developer {
+            ProgrammingLanguages
+        }
+        ... on Manager {
+            Department
+        }
+    }
+    
+    categories: GetCategories {
+        id
+        name
     }
 }
 
-### Create Colored Product with Variables (Money format)
+### Introspection Query - Get All Types
 GRAPHQL http://localhost:8080/graphql
 
-mutation CreateColoredProductWithVars($name: String!, $price: Money!, $color: HexColor!) {
+query IntrospectionQuery {
+    __schema {
+        types {
+            name
+            kind
+            description
+        }
+    }
+}
+
+### Introspection - Get Employee Type Details
+GRAPHQL http://localhost:8080/graphql
+
+query EmployeeTypeDetails {
+    __type(name: "Employee") {
+        name
+        kind
+        interfaces {
+            name
+        }
+        possibleTypes {
+            name
+        }
+        fields {
+            name
+            type {
+                name
+                kind
+            }
+        }
+    }
+}
+
+### Custom Scalar Examples ###
+
+### Validate Email Address
+GRAPHQL http://localhost:8080/graphql
+
+query ValidateEmail($email: EmailAddress!) {
+    validateEmail(email: $email)
+}
+
+{
+  "email": "user@example.com"
+}
+
+### Get Current Date/Time
+GRAPHQL http://localhost:8080/graphql
+
+query GetCurrentDateTime {
+    getCurrentDateTime
+}
+
+### Process JSON Metadata
+GRAPHQL http://localhost:8080/graphql
+
+mutation ProcessMetadata($metadata: JSON!) {
+    processJSONMetadata(metadata: $metadata)
+}
+
+{
+  "metadata": {
+    "version": "1.0",
+    "features": ["auth", "caching", "logging"],
+    "config": {
+      "timeout": 30,
+      "retries": 3
+    }
+  }
+}
+
+### Create Product with Custom Scalars
+GRAPHQL http://localhost:8080/graphql
+
+mutation CreateColoredProduct($name: String!, $price: Money!, $color: HexColor!) {
     createColoredProduct(
         name: $name,
         price: $price,
@@ -950,7 +661,7 @@ query CustomScalarIntrospection {
         kind
         description
     }
-    hexColor: __type(name: "HexColor") {
+    dateTime: __type(name: "DateTime") {
         name
         kind
         description
@@ -960,118 +671,12 @@ query CustomScalarIntrospection {
         kind
         description
     }
-    dateTime: __type(name: "DateTime") {
-        name
-        kind
-        description
-    }
-    employeeID: __type(name: "EmployeeID") {
-        name
-        kind
-        description
-    }
-    productID: __type(name: "ProductID") {
-        name
-        kind
-        description
-    }
-}
-
-### Test Scalar Validation - Invalid Color (will fail)
-GRAPHQL http://localhost:8080/graphql
-
-mutation TestInvalidColor {
-    createColoredProduct(
-        name: "Invalid Color Product",
-        price: "15.00 HUF",
-        color: "not-a-color"
-    ) {
-        id
-    }
-}
-
-### Test Different Color Formats
-GRAPHQL http://localhost:8080/graphql
-
-mutation TestShortColorFormat {
-    createColoredProduct(
-        name: "Blue Widget",
-        price: "15.00 GBP",
-        color: "#00F"
-    ) {
-        id
-        name
-        price
-        color
-    }
-}
-
-### Complex Example with Multiple Custom Scalars
-GRAPHQL http://localhost:8080/graphql
-
-mutation ComplexScalarExample($productData: String!, $amount: Money!, $userEmail: EmailAddress!) {
-    # Create a colored product
-    product: createColoredProduct(
-        name: $productData,
-        price: $amount,
-        color: "#FFD700"
-    ) {
-        id
-        name
-        price
-        color
-    }
-
-    # Validate the email
-    emailValid: validateEmail(email: $userEmail)
-
-    # Get current server time
-    timestamp: getServerStartTime
-}
-
-{
-  "productData": "Golden Special Edition",
-  "amount": "99.99 USD",
-  "userEmail": "customer@shop.com"
-}
-
-### JSON Scalar Examples
-GRAPHQL http://localhost:8080/graphql
-
-query GetSampleJSON {
-    getSampleJSONData
-}
-
-### JSON Scalar Processing
-GRAPHQL http://localhost:8080/graphql
-
-query ProcessJSONWithVars($metadata: JSON!) {
-    processJSONMetadata(metadata: $metadata) {
-        totalKeys
-        typeBreakdown
-        hasNestedObjects
-        hasArrays
-    }
-}
-
-{
-  "metadata": {
-    "product": "Smart Watch",
-    "features": ["GPS", "Heart Rate", "Waterproof"],
-    "specs": {
-      "battery": "7 days",
-      "weight": "45g",
-      "display": "AMOLED"
-    },
-    "price": 299.99,
-    "inStock": true
-  }
 }
 
 ### Create Product with JSON Metadata
 GRAPHQL http://localhost:8080/graphql
 
-mutation CreateProductWithJSON($name: String!, $price: Money!, $metadata: JSON!) {
+mutation CreateProductWithMetadata($name: String!, $price: Money!, $metadata: JSON!) {
     createProductWithMetadata(
         name: $name,
         price: $price,
@@ -1099,4 +704,462 @@ mutation CreateProductWithJSON($name: String!, $price: Money!, $metadata: JSON!)
     "energyRating": "A++",
     "certified": true
   }
+}
+
+### VALIDATION TEST CASES ###
+
+### Test Employee Input Validation - Missing Name
+GRAPHQL http://localhost:8080/graphql
+
+mutation CreateEmployeeInvalidNoName {
+    CreateEmployee(input: {
+        name: ""
+        email: "test@example.com"
+        salary: 50000
+        type: DEVELOPER
+        programmingLanguages: ["Go"]
+    }) {
+        __typename
+        ... on Developer {
+            ID
+            Name
+        }
+    }
+}
+
+### Test Employee Input Validation - Invalid Email
+GRAPHQL http://localhost:8080/graphql
+
+mutation CreateEmployeeInvalidEmail {
+    CreateEmployee(input: {
+        name: "Test User"
+        email: "invalid-email"
+        salary: 50000
+        type: DEVELOPER
+        programmingLanguages: ["Go"]
+    }) {
+        __typename
+        ... on Developer {
+            ID
+            Name
+        }
+    }
+}
+
+### Test Employee Input Validation - Negative Salary
+GRAPHQL http://localhost:8080/graphql
+
+mutation CreateEmployeeNegativeSalary {
+    CreateEmployee(input: {
+        name: "Test User"
+        email: "test@example.com"
+        salary: -1000
+        type: DEVELOPER
+        programmingLanguages: ["Go"]
+    }) {
+        __typename
+        ... on Developer {
+            ID
+            Name
+        }
+    }
+}
+
+### Test Employee Input Validation - Developer Without Languages
+GRAPHQL http://localhost:8080/graphql
+
+mutation CreateDeveloperNoLanguages {
+    CreateEmployee(input: {
+        name: "Test Developer"
+        email: "dev@example.com"
+        salary: 80000
+        type: DEVELOPER
+        programmingLanguages: []
+    }) {
+        __typename
+        ... on Developer {
+            ID
+            Name
+        }
+    }
+}
+
+### Test Employee Input Validation - Manager Without Department
+GRAPHQL http://localhost:8080/graphql
+
+mutation CreateManagerNoDepartment {
+    CreateEmployee(input: {
+        name: "Test Manager"
+        email: "manager@example.com"
+        salary: 90000
+        type: MANAGER
+        programmingLanguages: []
+    }) {
+        __typename
+        ... on Manager {
+            ID
+            Name
+        }
+    }
+}
+
+### Test Product Input Validation - Empty Name
+GRAPHQL http://localhost:8080/graphql
+
+mutation CreateProductEmptyName {
+    CreateProduct(input: {
+        name: ""
+        description: "Test product"
+        price: 50
+        categoryId: 1
+    }) {
+        id
+        name
+    }
+}
+
+### Test Product Input Validation - Negative Price
+GRAPHQL http://localhost:8080/graphql
+
+mutation CreateProductNegativePrice {
+    CreateProduct(input: {
+        name: "Test Product"
+        description: "Test product"
+        price: -10
+        categoryId: 1
+    }) {
+        id
+        name
+    }
+}
+
+### Test Product Input Validation - Price Too High
+GRAPHQL http://localhost:8080/graphql
+
+mutation CreateProductPriceTooHigh {
+    CreateProduct(input: {
+        name: "Test Product"
+        description: "Test product"
+        price: 2000000
+        categoryId: 1
+    }) {
+        id
+        name
+    }
+}
+
+### Test Review Input Validation - Invalid Rating
+GRAPHQL http://localhost:8080/graphql
+
+mutation AddReviewInvalidRating {
+    AddProductReview(productId: 1, review: {
+        rating: 10
+        comment: "This rating is too high"
+    }) {
+        id
+        rating
+    }
+}
+
+### Test Review Input Validation - Short Comment
+GRAPHQL http://localhost:8080/graphql
+
+mutation AddReviewShortComment {
+    AddProductReview(productId: 1, review: {
+        rating: 4
+        comment: "Too short"
+    }) {
+        id
+        comment
+    }
+}
+
+### Test Review Input Validation - Long Comment
+GRAPHQL http://localhost:8080/graphql
+
+mutation AddReviewLongComment {
+    AddProductReview(productId: 1, review: {
+        rating: 5
+        comment: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Extra text to exceed 1000 characters limit."
+    }) {
+        id
+        comment
+    }
+}
+
+### Test Widget Input Validation - Empty Name
+GRAPHQL http://localhost:8080/graphql
+
+mutation CreateWidgetEmptyName {
+    CreateWidget(widget: {
+        name: ""
+        price: 10
+        quantity: 5
+    }) {
+        id
+        name
+    }
+}
+
+### Test Widget Input Validation - Negative Price
+GRAPHQL http://localhost:8080/graphql
+
+mutation CreateWidgetNegativePrice {
+    CreateWidget(widget: {
+        name: "Test Widget"
+        price: -5
+        quantity: 10
+    }) {
+        id
+        price
+    }
+}
+
+### Test Widget Input Validation - Negative Quantity
+GRAPHQL http://localhost:8080/graphql
+
+mutation CreateWidgetNegativeQuantity {
+    CreateWidget(widget: {
+        name: "Test Widget"
+        price: 20
+        quantity: -5
+    }) {
+        id
+        quantity
+    }
+}
+
+### Test Widget Input Validation - Quantity Too High
+GRAPHQL http://localhost:8080/graphql
+
+mutation CreateWidgetQuantityTooHigh {
+    CreateWidget(widget: {
+        name: "Test Widget"
+        price: 20
+        quantity: 2000
+    }) {
+        id
+        quantity
+    }
+}
+
+### Test Context Validation - Promote Without Auth
+# This should fail because no authentication token is provided
+GRAPHQL http://localhost:8080/graphql
+
+mutation PromoteWithoutAuth {
+    PromoteToManager(input: {
+        employeeId: 1
+        department: "Engineering"
+    }) {
+        id
+        name
+        department
+    }
+}
+
+### Test Context Validation - Promote With Non-Admin Auth
+# This should fail because only admins can promote
+GRAPHQL http://localhost:8080/graphql
+Authorization: Bearer user-token
+
+mutation PromoteWithUserAuth {
+    PromoteToManager(input: {
+        employeeId: 1
+        department: "Engineering"
+    }) {
+        id
+        name
+        department
+    }
+}
+
+### Test Context Validation - Promote With Admin Auth
+# This should succeed with admin authentication
+GRAPHQL http://localhost:8080/graphql
+Authorization: Bearer admin-token
+
+mutation PromoteWithAdminAuth {
+    PromoteToManager(input: {
+        employeeId: 1
+        department: "Engineering"
+    }) {
+        id
+        name
+        department
+    }
+}
+
+### Test Context Validation - Update Product Status Without Auth
+# This should fail because no authentication is provided
+GRAPHQL http://localhost:8080/graphql
+
+mutation UpdateStatusWithoutAuth {
+    UpdateProductStatus(input: {
+        id: 1
+        status: DISCONTINUED
+    }) {
+        id
+        status
+    }
+}
+
+### Test Context Validation - Update Product Status With User Auth
+# This should fail because only admins can update product status
+GRAPHQL http://localhost:8080/graphql
+Authorization: Bearer user-token
+
+mutation UpdateStatusWithUserAuth {
+    UpdateProductStatus(input: {
+        id: 1
+        status: DISCONTINUED
+    }) {
+        id
+        status
+    }
+}
+
+### Test Context Validation - Update Product Status With Admin Auth
+# This should succeed with admin authentication
+GRAPHQL http://localhost:8080/graphql
+Authorization: Bearer admin-token
+
+mutation UpdateStatusWithAdminAuth {
+    UpdateProductStatus(input: {
+        id: 1
+        status: DISCONTINUED
+    }) {
+        id
+        status
+    }
+}
+
+### Test Context Validation - Create Product Without Auth
+# This should fail for products over $10,000
+GRAPHQL http://localhost:8080/graphql
+
+mutation CreateExpensiveProductNoAuth {
+    CreateProduct(input: {
+        name: "Expensive Product"
+        description: "Very expensive item"
+        price: 15000
+        categoryId: 1
+    }) {
+        id
+        name
+        price
+    }
+}
+
+### Test Context Validation - Create Expensive Product With Editor Auth
+# This should fail because editors can't create products over $10,000
+GRAPHQL http://localhost:8080/graphql
+Authorization: Bearer editor-token
+
+mutation CreateExpensiveProductEditorAuth {
+    CreateProduct(input: {
+        name: "Expensive Product"
+        description: "Very expensive item"  
+        price: 15000
+        categoryId: 1
+    }) {
+        id
+        name
+        price
+    }
+}
+
+### Test Context Validation - Create Expensive Product With Admin Auth
+# This should succeed with admin authentication
+GRAPHQL http://localhost:8080/graphql
+Authorization: Bearer admin-token
+
+mutation CreateExpensiveProductAdminAuth {
+    CreateProduct(input: {
+        name: "Expensive Product"
+        description: "Very expensive item"
+        price: 15000
+        categoryId: 1
+    }) {
+        id
+        name
+        price
+    }
+}
+
+### Test All Validations - Valid Employee Creation
+GRAPHQL http://localhost:8080/graphql
+
+mutation CreateValidEmployee {
+    CreateEmployee(input: {
+        name: "Valid Employee"
+        email: "valid@example.com"
+        salary: 75000
+        type: DEVELOPER
+        programmingLanguages: ["Go", "Python", "JavaScript"]
+        githubUsername: "valid-dev"
+    }) {
+        __typename
+        ... on Developer {
+            ID
+            Name
+            Email
+            Salary
+            ProgrammingLanguages
+            GithubUsername
+        }
+    }
+}
+
+### Test All Validations - Valid Product Creation
+GRAPHQL http://localhost:8080/graphql
+Authorization: Bearer admin-token
+
+mutation CreateValidProduct {
+    CreateProduct(input: {
+        name: "Valid Product"
+        description: "This is a valid product with all required fields"
+        price: 99.99
+        categoryId: 1
+    }) {
+        id
+        name
+        description
+        price
+        status
+        category {
+            name
+        }
+    }
+}
+
+### Test All Validations - Valid Review Creation
+GRAPHQL http://localhost:8080/graphql
+
+mutation AddValidReview {
+    AddProductReview(productId: 1, review: {
+        rating: 4
+        comment: "This is a valid review with appropriate length and rating."
+    }) {
+        id
+        rating
+        comment
+        createdAt
+    }
+}
+
+### Test All Validations - Valid Widget Creation
+GRAPHQL http://localhost:8080/graphql
+
+mutation CreateValidWidget {
+    CreateWidget(widget: {
+        name: "Valid Widget"
+        price: 49.99
+        quantity: 50
+    }) {
+        id
+        name
+        price
+        quantity
+    }
 }

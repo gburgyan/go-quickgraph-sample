@@ -201,7 +201,7 @@ func main() {
 	fmt.Println("2. Subscribe to current time (updates every second)")
 	fmt.Println("3. Subscribe to product updates")
 	fmt.Println("4. Subscribe to order status for order-123")
-	fmt.Println("\nPress Ctrl+C to exit\n")
+	fmt.Println("\nPress Ctrl+C to exit")
 
 	runSubscriptionClient()
 }

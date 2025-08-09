@@ -8,16 +8,53 @@ import (
 )
 
 type Widget struct {
-	ID       int     `json:"id"`
-	Name     string  `json:"name"`
-	Price    float64 `json:"price"`
-	Quantity int     `json:"quantity"`
+	ID       int     `graphy:"id,description=Unique widget identifier"`
+	Name     string  `graphy:"widgetName,description=Widget name"`
+	Price    float64 `graphy:"price,description=Widget price in USD"`
+	Quantity int     `graphy:"stock,description=Available quantity in stock"`
+}
+
+// GraphTypeExtension implements the GraphTypeExtension interface for Widget
+func (Widget) GraphTypeExtension() quickgraph.GraphTypeInfo {
+	return quickgraph.GraphTypeInfo{
+		Description: "A simple widget item with inventory tracking",
+	}
 }
 
 type WidgetCreateInput struct {
-	Name     string  `json:"name"`
-	Price    float64 `json:"price"`
-	Quantity int     `json:"quantity"`
+	Name     string  `graphy:"name,description=Widget name"`
+	Price    float64 `graphy:"price,description=Widget price in USD"`
+	Quantity int     `graphy:"initialStock,description=Initial quantity in stock (must be non-negative)"`
+}
+
+// GraphTypeExtension implements the GraphTypeExtension interface for WidgetCreateInput
+func (WidgetCreateInput) GraphTypeExtension() quickgraph.GraphTypeInfo {
+	return quickgraph.GraphTypeInfo{
+		Description: "Input type for creating a new widget",
+	}
+}
+
+// Validate implements the Validator interface for WidgetCreateInput
+func (w WidgetCreateInput) Validate() error {
+	if w.Name == "" {
+		return errors.New("widget name is required")
+	}
+	if len(w.Name) < 2 {
+		return errors.New("widget name must be at least 2 characters long")
+	}
+	if w.Price <= 0 {
+		return errors.New("widget price must be greater than 0")
+	}
+	if w.Price > 10000 {
+		return errors.New("widget price cannot exceed $10,000")
+	}
+	if w.Quantity < 0 {
+		return errors.New("widget quantity cannot be negative")
+	}
+	if w.Quantity > 1000 {
+		return errors.New("widget quantity cannot exceed 1000 units")
+	}
+	return nil
 }
 
 var (
@@ -33,10 +70,36 @@ var (
 )
 
 func RegisterWidgetHandlers(ctx context.Context, graphy *quickgraph.Graphy) {
-	graphy.RegisterQuery(ctx, "GetWidget", GetWidget, "id")
-	graphy.RegisterQuery(ctx, "GetWidgets", GetWidgets)
-	graphy.RegisterMutation(ctx, "CreateWidget", CreateWidget, "widget")
-	graphy.RegisterMutation(ctx, "UpdateWidget", UpdateWidget, "widget")
+	graphy.RegisterFunction(ctx, quickgraph.FunctionDefinition{
+		Name:           "GetWidget",
+		Function:       GetWidget,
+		ParameterNames: []string{"id"},
+		Description:    strPtr("Retrieves a single widget by its ID"),
+		Mode:           quickgraph.ModeQuery,
+	})
+
+	graphy.RegisterFunction(ctx, quickgraph.FunctionDefinition{
+		Name:        "GetWidgets",
+		Function:    GetWidgets,
+		Description: strPtr("Retrieves all widgets in inventory"),
+		Mode:        quickgraph.ModeQuery,
+	})
+
+	graphy.RegisterFunction(ctx, quickgraph.FunctionDefinition{
+		Name:           "CreateWidget",
+		Function:       CreateWidget,
+		ParameterNames: []string{"widget"},
+		Description:    strPtr("Creates a new widget with the specified properties"),
+		Mode:           quickgraph.ModeMutation,
+	})
+
+	graphy.RegisterFunction(ctx, quickgraph.FunctionDefinition{
+		Name:           "UpdateWidget",
+		Function:       UpdateWidget,
+		ParameterNames: []string{"widget"},
+		Description:    strPtr("Updates an existing widget's properties"),
+		Mode:           quickgraph.ModeMutation,
+	})
 }
 
 func GetWidget(id int) (Widget, error) {

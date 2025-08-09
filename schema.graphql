@@ -1,30 +1,47 @@
 type Query {
+	"""Retrieves all employees in the system"""
 	GetAllEmployees: [Employee]!
+	"""Retrieves all product categories"""
 	GetCategories: [Category!]!
 	GetCurrentUser: User
+	"""Retrieves a single employee by their unique ID"""
 	GetEmployee(id: Int!): Employee
+	"""Retrieves all employees who are managers"""
 	GetManagers: [Manager]!
+	"""Retrieves a single product by its ID"""
 	GetProduct(id: Int!): Product
-	GetProducts(filter: ProductFilter): [Product!]!
+	"""Retrieves products matching the specified filter criteria"""
+	GetProducts(filter: ProductFilterInput): [Product!]!
+	"""Retrieves a single widget by its ID"""
 	GetWidget(id: Int!): Widget!
+	"""Retrieves all widgets in inventory"""
 	GetWidgets: [Widget!]!
+	"""Searches across widgets, products, and employees by name, email, or description"""
 	Search(query: String!): [SearchResult!]!
 	getCurrentDateTime: DateTime!
 	getEmployeeByIDScalar(id: EmployeeID!): Employee
 	getSampleJSONData: JSON!
 	getServerStartTime: DateTime!
+	"""Returns a greeting message for the given name"""
 	greeting(name: String!): GreetingResponse!
 	processJSONMetadata(metadata: JSON!): JSON!
 	validateEmail(email: EmailAddress!): Boolean!
 }
 
 type Mutation {
+	"""Adds a customer review to a product"""
 	AddProductReview(productId: Int!, review: ReviewInput!): Review
+	"""Creates a new employee (Developer or Manager) based on the input type"""
 	CreateEmployee(input: EmployeeInput!): EmployeeResult!
+	"""Creates a new product in DRAFT status"""
 	CreateProduct(input: ProductInput!): Product
+	"""Creates a new widget with the specified properties"""
 	CreateWidget(widget: WidgetCreateInput!): Widget!
-	PromoteToManager(employeeId: Int!, department: String!): Manager
-	UpdateProductStatus(id: Int!, status: String!): Product
+	"""Promotes a developer to a manager role with a 20% salary increase"""
+	PromoteToManager(input: PromotionInput!): Manager
+	"""Updates the status of an existing product"""
+	UpdateProductStatus(input: ProductStatusUpdateInput!): Product
+	"""Updates an existing widget's properties"""
 	UpdateWidget(widget: WidgetInput!): Widget!
 	createColoredProduct(name: String!, price: Money!, color: HexColor!): ColoredProduct!
 	createProductWithMetadata(name: String!, price: Money!, metadata: JSON!): ProductWithMetadata!
@@ -37,53 +54,104 @@ type Subscription {
 	widgetUpdates(widgetId: Int!): WidgetUpdate!
 }
 
+"""Input type for creating a new employee"""
 input EmployeeInput {
+	"""Required for managers: department name"""
 	department: String
+	"""Work email address"""
 	email: String!
+	"""Optional GitHub username for developers"""
 	githubUsername: String
+	"""Full name of the employee"""
 	name: String!
+	"""Required for developers: list of programming languages"""
 	programmingLanguages: [String!]!
+	"""Annual salary in USD"""
 	salary: Float!
-	type: String!
+	"""Type of employee (DEVELOPER or MANAGER)"""
+	type: EmployeeType!
 }
 
-input ProductFilter {
+"""Filter criteria for querying products"""
+input ProductFilterInput {
+	"""Filter by category ID"""
 	categoryId: Int
+	"""Filter by stock availability"""
 	inStock: Boolean
+	"""Maximum price filter"""
 	maxPrice: Float
+	"""Minimum price filter"""
 	minPrice: Float
-	status: String
+	"""Filter by product status"""
+	status: ProductStatus
 }
 
+"""Input type for creating a new product"""
 input ProductInput {
+	"""ID of the category for this product"""
 	categoryId: Int!
+	"""Detailed product description"""
 	description: String!
+	"""Product name"""
 	name: String!
+	"""Product price in USD"""
 	price: Float!
 }
 
+"""Input type for updating product status"""
+input ProductStatusUpdateInput {
+	"""Product ID to update"""
+	id: Int!
+	"""New product status"""
+	status: ProductStatus!
+}
+
+"""Input type for promoting an employee to manager"""
+input PromotionInput {
+	"""Department the new manager will oversee"""
+	department: String!
+	"""ID of the employee to promote"""
+	employeeId: Int!
+}
+
+"""Input type for adding a product review"""
 input ReviewInput {
+	"""Review comment text"""
 	comment: String!
+	"""Rating from 1 to 5 stars"""
 	rating: Int!
 }
 
+"""A simple widget item with inventory tracking"""
 input WidgetInput {
+	"""Unique widget identifier"""
 	id: Int!
-	name: String!
+	"""Widget price in USD"""
 	price: Float!
-	quantity: Int!
+	"""Available quantity in stock"""
+	stock: Int!
+	"""Widget name"""
+	widgetName: String!
 }
 
+"""Input type for creating a new widget"""
 input WidgetCreateInput {
+	"""Initial quantity in stock (must be non-negative)"""
+	initialStock: Int!
+	"""Widget name"""
 	name: String!
+	"""Widget price in USD"""
 	price: Float!
-	quantity: Int!
 }
 
+"""Product category for organizing products"""
 type Category {
-	Description: String
-	ID: Int!
-	Name: String!
+	"""Optional category description"""
+	description: String
+	"""Unique category identifier"""
+	id: Int!
+	"""Category name"""
+	name: String!
 	Products: [Product!]!
 }
 
@@ -94,51 +162,100 @@ type ColoredProduct {
 	price: Money!
 }
 
+"""A software developer employee with programming skills and technical expertise"""
 type Developer implements IEmployee {
-	Email: String!
-	GithubUsername: String
-	HireDate: String!
-	ID: Int!
-	Name: String!
+	"""Work email address"""
+	email: String!
+	"""GitHub username for the developer (optional)"""
+	githubUsername: String
+	"""Date when the employee was hired (ISO 8601 format)"""
+	hireDate: String!
+	"""Unique identifier for the employee"""
+	id: Int!
+	"""Full name of the employee"""
+	name: String!
 	PersonalDetails: PersonalInfo
-	ProgrammingLanguages: [String!]!
-	Salary: Float!
+	"""List of programming languages the developer is proficient in"""
+	programmingLanguages: [String!]!
+	"""Annual salary in USD"""
+	salary: Float!
 }
 
+"""Base employee type representing common attributes for all employees"""
 interface IEmployee {
-	Email: String!
-	HireDate: String!
-	ID: Int!
-	Name: String!
+	"""Work email address"""
+	email: String!
+	"""Date when the employee was hired (ISO 8601 format)"""
+	hireDate: String!
+	"""Unique identifier for the employee"""
+	id: Int!
+	"""Full name of the employee"""
+	name: String!
 	PersonalDetails: PersonalInfo
-	Salary: Float!
+	"""Annual salary in USD"""
+	salary: Float!
 }
 
+"""Base employee type representing common attributes for all employees"""
 type Employee implements IEmployee {
-	Email: String!
-	HireDate: String!
-	ID: Int!
-	Name: String!
+	"""Work email address"""
+	email: String!
+	"""Date when the employee was hired (ISO 8601 format)"""
+	hireDate: String!
+	"""Unique identifier for the employee"""
+	id: Int!
+	"""Full name of the employee"""
+	name: String!
 	PersonalDetails: PersonalInfo
-	Salary: Float!
+	"""Annual salary in USD"""
+	salary: Float!
 }
 
+"""Input type for creating a new employee"""
+type EmployeeInput {
+	"""Required for managers: department name"""
+	department: String
+	"""Work email address"""
+	email: String!
+	"""Optional GitHub username for developers"""
+	githubUsername: String
+	"""Full name of the employee"""
+	name: String!
+	"""Required for developers: list of programming languages"""
+	programmingLanguages: [String!]!
+	"""Annual salary in USD"""
+	salary: Float!
+	"""Type of employee (DEVELOPER or MANAGER)"""
+	type: EmployeeType!
+}
+
+"""Union type representing either a Developer or Manager result"""
 union EmployeeResult = Developer | Manager
 
+"""Response containing a personalized greeting message"""
 type GreetingResponse {
-	Greeting: String!
+	"""The greeting message"""
+	greeting: String!
 }
 
+"""A management employee responsible for overseeing teams and departments"""
 type Manager implements IEmployee {
-	Department: String!
-	Email: String!
-	HireDate: String!
-	ID: Int!
-	Name: String!
+	"""The department this manager oversees"""
+	department: String!
+	"""Work email address"""
+	email: String!
+	"""Date when the employee was hired (ISO 8601 format)"""
+	hireDate: String!
+	"""Unique identifier for the employee"""
+	id: Int!
+	"""Full name of the employee"""
+	name: String!
 	PersonalDetails: PersonalInfo
 	Reports: [Employee]!
-	Salary: Float!
-	TeamSize: Int!
+	"""Annual salary in USD"""
+	salary: Float!
+	"""Number of direct reports"""
+	teamSize: Int!
 }
 
 type OrderUpdate {
@@ -155,17 +272,59 @@ type PersonalInfo {
 	salary: Float!
 }
 
+"""A product available in the catalog"""
 type Product {
 	AverageRating: Float
 	Category: Category
-	CategoryID: Int!
-	Description: String!
-	ID: Int!
-	InStock: Boolean!
-	Name: String!
-	Price: Float!
+	"""ID of the category this product belongs to"""
+	categoryId: Int!
+	"""Detailed product description"""
+	description: String!
+	"""Unique product identifier"""
+	id: Int!
+	"""Whether the product is currently in stock"""
+	inStock: Boolean!
+	"""Product name"""
+	name: String!
+	"""Current price in USD"""
+	price: Float!
 	Reviews: [Review!]!
-	Status: String!
+	"""Current product status"""
+	status: ProductStatus!
+}
+
+"""Filter criteria for querying products"""
+type ProductFilter {
+	"""Filter by category ID"""
+	categoryId: Int
+	"""Filter by stock availability"""
+	inStock: Boolean
+	"""Maximum price filter"""
+	maxPrice: Float
+	"""Minimum price filter"""
+	minPrice: Float
+	"""Filter by product status"""
+	status: ProductStatus
+}
+
+"""Input type for creating a new product"""
+type ProductInput {
+	"""ID of the category for this product"""
+	categoryId: Int!
+	"""Detailed product description"""
+	description: String!
+	"""Product name"""
+	name: String!
+	"""Product price in USD"""
+	price: Float!
+}
+
+"""Input type for updating product status"""
+type ProductStatusUpdateInput {
+	"""Product ID to update"""
+	id: Int!
+	"""New product status"""
+	status: ProductStatus!
 }
 
 type ProductUpdate {
@@ -181,16 +340,40 @@ type ProductWithMetadata {
 	price: Money!
 }
 
-type Review {
-	Comment: String!
-	CreatedAt: String!
-	ID: Int!
-	ProductID: Int!
-	Rating: Int!
-	User: User
-	UserID: Int!
+"""Input type for promoting an employee to manager"""
+type PromotionInput {
+	"""Department the new manager will oversee"""
+	department: String!
+	"""ID of the employee to promote"""
+	employeeId: Int!
 }
 
+"""Customer review for a product"""
+type Review {
+	"""Review comment text"""
+	comment: String!
+	"""ISO 8601 timestamp when the review was created"""
+	createdAt: String!
+	"""Unique review identifier"""
+	id: Int!
+	"""ID of the reviewed product"""
+	productId: Int!
+	"""Rating from 1 to 5 stars"""
+	rating: Int!
+	User: User
+	"""ID of the user who wrote the review"""
+	userId: Int!
+}
+
+"""Input type for adding a product review"""
+type ReviewInput {
+	"""Review comment text"""
+	comment: String!
+	"""Rating from 1 to 5 stars"""
+	rating: Int!
+}
+
+"""Union type representing search results across different entity types"""
 union SearchResult = Developer | Employee | Manager | Product | Widget
 
 type TimeUpdate {
@@ -198,19 +381,39 @@ type TimeUpdate {
 	timestamp: Int!
 }
 
+"""System user who can view products and write reviews"""
 type User {
-	Email: String!
-	ID: Int!
+	"""User's email address"""
+	email: String!
+	"""Unique user identifier"""
+	id: Int!
 	Reviews: [Review!]!
-	Role: String!
-	Username: String!
+	"""User's role in the system"""
+	role: UserRole!
+	"""User's display name"""
+	username: String!
 }
 
+"""A simple widget item with inventory tracking"""
 type Widget {
+	"""Unique widget identifier"""
 	id: Int!
-	name: String!
+	"""Widget price in USD"""
 	price: Float!
-	quantity: Int!
+	"""Available quantity in stock"""
+	stock: Int!
+	"""Widget name"""
+	widgetName: String!
+}
+
+"""Input type for creating a new widget"""
+type WidgetCreateInput {
+	"""Initial quantity in stock (must be non-negative)"""
+	initialStock: Int!
+	"""Widget name"""
+	name: String!
+	"""Widget price in USD"""
+	price: Float!
 }
 
 type WidgetUpdate {
@@ -219,12 +422,47 @@ type WidgetUpdate {
 	widget: Widget!
 }
 
-scalar DateTime # RFC3339 formatted date-time string
-scalar EmailAddress # Valid email address
-scalar EmployeeID # Unique identifier for employees
-scalar HexColor # Hexadecimal color representation (e.g., #FF0000)
-scalar JSON # Arbitrary JSON data
-scalar Money # Monetary amount with currency (e.g., '123.45 USD')
-scalar ProductID # Unique identifier for products
-scalar URL # Valid URL
+enum UserRole {
+	"""Administrator with full access"""
+	ADMIN
+	"""Registered customer with purchase history"""
+	CUSTOMER
+	"""Guest user with limited access"""
+	GUEST
+}
+
+enum EmployeeType {
+	"""Software developer employee type"""
+	DEVELOPER
+	"""Management employee type"""
+	MANAGER
+}
+
+enum ProductStatus {
+	"""Product is in draft state and not yet available"""
+	DRAFT
+	"""Product is active and available for purchase"""
+	ACTIVE
+	"""Product has been discontinued"""
+	DISCONTINUED @deprecated(reason: "Use OUT_OF_STOCK for temporary unavailability")
+	"""Product is temporarily out of stock"""
+	OUT_OF_STOCK
+}
+
+"""RFC3339 formatted date-time string"""
+scalar DateTime
+"""Valid email address"""
+scalar EmailAddress
+"""Unique identifier for employees"""
+scalar EmployeeID
+"""Hexadecimal color representation (e.g., #FF0000)"""
+scalar HexColor
+"""Arbitrary JSON data"""
+scalar JSON
+"""Monetary amount with currency (e.g., '123.45 USD')"""
+scalar Money
+"""Unique identifier for products"""
+scalar ProductID
+"""Valid URL"""
+scalar URL
 

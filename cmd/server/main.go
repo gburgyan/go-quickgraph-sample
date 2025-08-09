@@ -88,7 +88,13 @@ func main() {
 	}
 
 	// Register original handlers
-	graph.RegisterQuery(ctx, "greeting", handlers.Greeting, "name")
+	graph.RegisterFunction(ctx, quickgraph.FunctionDefinition{
+		Name:           "greeting",
+		Function:       handlers.Greeting,
+		ParameterNames: []string{"name"},
+		Description:    strPtr("Returns a greeting message for the given name"),
+		Mode:           quickgraph.ModeQuery,
+	})
 	handlers.RegisterWidgetHandlers(ctx, &graph)
 
 	// Register new feature handlers
@@ -103,7 +109,14 @@ func main() {
 
 	// Explicitly register types that aren't directly returned by any GraphQL function
 	// This ensures they appear in the schema and can be used in unions
-	graph.RegisterTypes(ctx, handlers.Employee{}, handlers.Developer{}, handlers.Manager{}, handlers.EmployeeResultUnion{})
+	graph.RegisterTypes(ctx,
+		handlers.Employee{}, handlers.Developer{}, handlers.Manager{}, handlers.EmployeeResultUnion{},
+		handlers.Product{}, handlers.Category{}, handlers.Review{}, handlers.User{},
+		handlers.Widget{}, handlers.SearchResultUnion{}, handlers.GreetingResponse{},
+		handlers.EmployeeInput{}, handlers.ProductInput{}, handlers.ReviewInput{},
+		handlers.WidgetCreateInput{}, handlers.ProductFilter{}, handlers.PromotionInput{},
+		handlers.ProductStatusUpdateInput{},
+	)
 
 	// Enable introspection
 	graph.EnableIntrospection(ctx)
@@ -175,4 +188,9 @@ func executeQueryAndExit(ctx context.Context, graph *quickgraph.Graphy, query st
 	}
 
 	os.Exit(0)
+}
+
+// Helper function
+func strPtr(s string) *string {
+	return &s
 }

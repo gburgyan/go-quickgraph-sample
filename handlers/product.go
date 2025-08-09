@@ -20,8 +20,13 @@ const (
 )
 
 // EnumValues implements the StringEnumValues interface for schema generation
-func (ProductStatus) EnumValues() []string {
-	return []string{"DRAFT", "ACTIVE", "DISCONTINUED", "OUT_OF_STOCK"}
+func (ProductStatus) EnumValues() []quickgraph.EnumValue {
+	return []quickgraph.EnumValue{
+		{Name: "DRAFT", Description: "Product is in draft state and not yet available"},
+		{Name: "ACTIVE", Description: "Product is active and available for purchase"},
+		{Name: "DISCONTINUED", Description: "Product has been discontinued", IsDeprecated: true, DeprecationReason: "Use OUT_OF_STOCK for temporary unavailability"},
+		{Name: "OUT_OF_STOCK", Description: "Product is temporarily out of stock"},
+	}
 }
 
 type UserRole string
@@ -33,62 +38,183 @@ const (
 )
 
 // EnumValues implements the StringEnumValues interface for schema generation
-func (UserRole) EnumValues() []string {
-	return []string{"ADMIN", "CUSTOMER", "GUEST"}
+func (UserRole) EnumValues() []quickgraph.EnumValue {
+	return []quickgraph.EnumValue{
+		{Name: "ADMIN", Description: "Administrator with full access"},
+		{Name: "CUSTOMER", Description: "Registered customer with purchase history"},
+		{Name: "GUEST", Description: "Guest user with limited access"},
+	}
 }
 
 // Domain types
 type Product struct {
-	ID          int
-	Name        string
-	Description string
-	Price       float64
-	Status      ProductStatus
-	CategoryID  int
-	InStock     bool
+	ID          int           `graphy:"id,description=Unique product identifier"`
+	Name        string        `graphy:"name,description=Product name"`
+	Description string        `graphy:"description,description=Detailed product description"`
+	Price       float64       `graphy:"price,description=Current price in USD"`
+	Status      ProductStatus `graphy:"status,description=Current product status"`
+	CategoryID  int           `graphy:"categoryId,description=ID of the category this product belongs to"`
+	InStock     bool          `graphy:"inStock,description=Whether the product is currently in stock"`
+}
+
+// GraphTypeExtension implements the GraphTypeExtension interface for Product
+func (Product) GraphTypeExtension() quickgraph.GraphTypeInfo {
+	return quickgraph.GraphTypeInfo{
+		Description: "A product available in the catalog",
+	}
 }
 
 type Category struct {
-	ID          int
-	Name        string
-	Description *string // Optional field
+	ID          int     `graphy:"id,description=Unique category identifier"`
+	Name        string  `graphy:"name,description=Category name"`
+	Description *string `graphy:"description,description=Optional category description"`
+}
+
+// GraphTypeExtension implements the GraphTypeExtension interface for Category
+func (Category) GraphTypeExtension() quickgraph.GraphTypeInfo {
+	return quickgraph.GraphTypeInfo{
+		Description: "Product category for organizing products",
+	}
 }
 
 type Review struct {
-	ID        int
-	ProductID int
-	UserID    int
-	Rating    int
-	Comment   string
-	CreatedAt string
+	ID        int    `graphy:"id,description=Unique review identifier"`
+	ProductID int    `graphy:"productId,description=ID of the reviewed product"`
+	UserID    int    `graphy:"userId,description=ID of the user who wrote the review"`
+	Rating    int    `graphy:"rating,description=Rating from 1 to 5 stars"`
+	Comment   string `graphy:"comment,description=Review comment text"`
+	CreatedAt string `graphy:"createdAt,description=ISO 8601 timestamp when the review was created"`
+}
+
+// GraphTypeExtension implements the GraphTypeExtension interface for Review
+func (Review) GraphTypeExtension() quickgraph.GraphTypeInfo {
+	return quickgraph.GraphTypeInfo{
+		Description: "Customer review for a product",
+	}
 }
 
 type User struct {
-	ID       int
-	Username string
-	Email    string
-	Role     UserRole
+	ID       int      `graphy:"id,description=Unique user identifier"`
+	Username string   `graphy:"username,description=User's display name"`
+	Email    string   `graphy:"email,description=User's email address"`
+	Role     UserRole `graphy:"role,description=User's role in the system"`
+}
+
+// GraphTypeExtension implements the GraphTypeExtension interface for User
+func (User) GraphTypeExtension() quickgraph.GraphTypeInfo {
+	return quickgraph.GraphTypeInfo{
+		Description: "System user who can view products and write reviews",
+	}
 }
 
 // Input types
 type ProductInput struct {
-	Name        string  `json:"name"`
-	Description string  `json:"description"`
-	Price       float64 `json:"price"`
-	CategoryID  int     `json:"categoryId"`
+	Name        string  `graphy:"name,description=Product name"`
+	Description string  `graphy:"description,description=Detailed product description"`
+	Price       float64 `graphy:"price,description=Product price in USD"`
+	CategoryID  int     `graphy:"categoryId,description=ID of the category for this product"`
+}
+
+// GraphTypeExtension implements the GraphTypeExtension interface for ProductInput
+func (ProductInput) GraphTypeExtension() quickgraph.GraphTypeInfo {
+	return quickgraph.GraphTypeInfo{
+		Description: "Input type for creating a new product",
+	}
+}
+
+// Validate implements the Validator interface for ProductInput
+func (p ProductInput) Validate() error {
+	if p.Name == "" {
+		return errors.New("product name is required")
+	}
+	if len(p.Name) < 3 {
+		return errors.New("product name must be at least 3 characters long")
+	}
+	if p.Description == "" {
+		return errors.New("product description is required")
+	}
+	if p.Price <= 0 {
+		return errors.New("product price must be greater than 0")
+	}
+	if p.Price > 1000000 {
+		return errors.New("product price cannot exceed $1,000,000")
+	}
+	// Category validation is done in the handler since it requires DB lookup
+	return nil
 }
 
 type ProductFilter struct {
-	CategoryID *int           `json:"categoryId"`
-	MinPrice   *float64       `json:"minPrice"`
-	MaxPrice   *float64       `json:"maxPrice"`
-	Status     *ProductStatus `json:"status"`
-	InStock    *bool          `json:"inStock"`
+	CategoryID *int           `graphy:"categoryId,description=Filter by category ID"`
+	MinPrice   *float64       `graphy:"minPrice,description=Minimum price filter"`
+	MaxPrice   *float64       `graphy:"maxPrice,description=Maximum price filter"`
+	Status     *ProductStatus `graphy:"status,description=Filter by product status"`
+	InStock    *bool          `graphy:"inStock,description=Filter by stock availability"`
+}
+
+// GraphTypeExtension implements the GraphTypeExtension interface for ProductFilter
+func (ProductFilter) GraphTypeExtension() quickgraph.GraphTypeInfo {
+	return quickgraph.GraphTypeInfo{
+		Description: "Filter criteria for querying products",
+	}
 }
 
 type ReviewInput struct {
-	Rating  int    `json:"rating"`
-	Comment string `json:"comment"`
+	Rating  int    `graphy:"rating,description=Rating from 1 to 5 stars"`
+	Comment string `graphy:"comment,description=Review comment text"`
+}
+
+// GraphTypeExtension implements the GraphTypeExtension interface for ReviewInput
+func (ReviewInput) GraphTypeExtension() quickgraph.GraphTypeInfo {
+	return quickgraph.GraphTypeInfo{
+		Description: "Input type for adding a product review",
+	}
+}
+
+// Validate implements the Validator interface for ReviewInput
+func (r ReviewInput) Validate() error {
+	if r.Rating < 1 || r.Rating > 5 {
+		return errors.New("rating must be between 1 and 5")
+	}
+	if r.Comment == "" {
+		return errors.New("review comment is required")
+	}
+	if len(r.Comment) < 10 {
+		return errors.New("review comment must be at least 10 characters long")
+	}
+	if len(r.Comment) > 1000 {
+		return errors.New("review comment cannot exceed 1000 characters")
+	}
+	return nil
+}
+
+// ProductStatusUpdateInput is used for updating product status with admin validation
+type ProductStatusUpdateInput struct {
+	ID     int           `graphy:"id,description=Product ID to update"`
+	Status ProductStatus `graphy:"status,description=New product status"`
+}
+
+// GraphTypeExtension implements the GraphTypeExtension interface for ProductStatusUpdateInput
+func (ProductStatusUpdateInput) GraphTypeExtension() quickgraph.GraphTypeInfo {
+	return quickgraph.GraphTypeInfo{
+		Description: "Input type for updating product status",
+	}
+}
+
+// Validate implements the Validator interface for ProductStatusUpdateInput
+func (p ProductStatusUpdateInput) Validate() error {
+	// Validate the data fields only
+	if p.ID <= 0 {
+		return errors.New("invalid product ID")
+	}
+
+	switch p.Status {
+	case ProductStatusDraft, ProductStatusActive, ProductStatusDiscontinued, ProductStatusOutOfStock:
+		// Valid status
+	default:
+		return fmt.Errorf("invalid product status: %s", p.Status)
+	}
+
+	return nil
 }
 
 // Storage
@@ -135,15 +261,54 @@ func init() {
 
 func RegisterProductHandlers(ctx context.Context, graphy *quickgraph.Graphy) {
 	// Query registrations
-	graphy.RegisterQuery(ctx, "GetProduct", GetProduct, "id")
-	graphy.RegisterQuery(ctx, "GetProducts", GetProducts, "filter")
-	graphy.RegisterQuery(ctx, "GetCategories", GetCategories)
-	
+	graphy.RegisterFunction(ctx, quickgraph.FunctionDefinition{
+		Name:           "GetProduct",
+		Function:       GetProduct,
+		ParameterNames: []string{"id"},
+		Description:    strPtr("Retrieves a single product by its ID"),
+		Mode:           quickgraph.ModeQuery,
+	})
+
+	graphy.RegisterFunction(ctx, quickgraph.FunctionDefinition{
+		Name:           "GetProducts",
+		Function:       GetProducts,
+		ParameterNames: []string{"filter"},
+		Description:    strPtr("Retrieves products matching the specified filter criteria"),
+		Mode:           quickgraph.ModeQuery,
+	})
+
+	graphy.RegisterFunction(ctx, quickgraph.FunctionDefinition{
+		Name:        "GetCategories",
+		Function:    GetCategories,
+		Description: strPtr("Retrieves all product categories"),
+		Mode:        quickgraph.ModeQuery,
+	})
+
 	// Mutation registrations
-	graphy.RegisterMutation(ctx, "CreateProduct", CreateProduct, "input")
-	graphy.RegisterMutation(ctx, "UpdateProductStatus", UpdateProductStatus, "id", "status")
-	graphy.RegisterMutation(ctx, "AddProductReview", AddProductReview, "productId", "review")
-	
+	graphy.RegisterFunction(ctx, quickgraph.FunctionDefinition{
+		Name:           "CreateProduct",
+		Function:       CreateProduct,
+		ParameterNames: []string{"input"},
+		Description:    strPtr("Creates a new product in DRAFT status"),
+		Mode:           quickgraph.ModeMutation,
+	})
+
+	graphy.RegisterFunction(ctx, quickgraph.FunctionDefinition{
+		Name:           "UpdateProductStatus",
+		Function:       UpdateProductStatus,
+		ParameterNames: []string{"input"},
+		Description:    strPtr("Updates the status of an existing product"),
+		Mode:           quickgraph.ModeMutation,
+	})
+
+	graphy.RegisterFunction(ctx, quickgraph.FunctionDefinition{
+		Name:           "AddProductReview",
+		Function:       AddProductReview,
+		ParameterNames: []string{"productId", "review"},
+		Description:    strPtr("Adds a customer review to a product"),
+		Mode:           quickgraph.ModeMutation,
+	})
+
 	// Note: Methods on Product, Category, Review, and User types will be automatically
 	// exposed as fields when those objects are returned from queries
 }
@@ -193,14 +358,14 @@ func GetProducts(filter *ProductFilter) ([]Product, error) {
 func GetCategories() ([]Category, error) {
 	productsMux.RLock()
 	defer productsMux.RUnlock()
-	
+
 	result := make([]Category, len(categories))
 	copy(result, categories)
 	return result, nil
 }
 
 // Mutation handlers
-func CreateProduct(input ProductInput) (*Product, error) {
+func CreateProduct(ctx context.Context, input ProductInput) (*Product, error) {
 	// Validate category exists
 	categoryExists := false
 	for _, c := range categories {
@@ -228,48 +393,47 @@ func CreateProduct(input ProductInput) (*Product, error) {
 	nextProdID++
 
 	products = append(products, product)
-	
+
 	// Broadcast the product creation
 	BroadcastProductUpdate(product, "created")
-	
+
 	return &product, nil
 }
 
-func UpdateProductStatus(id int, status ProductStatus) (*Product, error) {
-	// Validate status
-	switch status {
-	case ProductStatusDraft, ProductStatusActive, ProductStatusDiscontinued, ProductStatusOutOfStock:
-		// Valid status
-	default:
-		return nil, fmt.Errorf("invalid product status: %s", status)
+func UpdateProductStatus(ctx context.Context, input ProductStatusUpdateInput) (*Product, error) {
+	// Check authentication
+	userRole, ok := ctx.Value("userRole").(string)
+	if !ok || userRole == "" {
+		return nil, errors.New("authentication required to update product status")
+	}
+
+	// Check authorization - only admins can change product status
+	if userRole != "admin" {
+		return nil, errors.New("only administrators can update product status")
 	}
 
 	productsMux.Lock()
 	defer productsMux.Unlock()
 
 	for i, p := range products {
-		if p.ID == id {
-			products[i].Status = status
-			if status == ProductStatusOutOfStock {
+		if p.ID == input.ID {
+			products[i].Status = input.Status
+			if input.Status == ProductStatusOutOfStock {
 				products[i].InStock = false
-			} else if status == ProductStatusActive {
+			} else if input.Status == ProductStatusActive {
 				products[i].InStock = true
 			}
-					// Broadcast the product update
-				BroadcastProductUpdate(products[i], "updated")
-				
+			// Broadcast the product update
+			BroadcastProductUpdate(products[i], "updated")
+
 			return &products[i], nil
 		}
 	}
-	return nil, fmt.Errorf("product with id %d not found", id)
+	return nil, fmt.Errorf("product with id %d not found", input.ID)
 }
 
 func AddProductReview(productId int, review ReviewInput) (*Review, error) {
-	// Validate rating
-	if review.Rating < 1 || review.Rating > 5 {
-		return nil, errors.New("rating must be between 1 and 5")
-	}
-
+	// Note: Rating validation is now handled by the Validator interface
 	// Validate product exists
 	productExists := false
 	for _, p := range products {
@@ -362,9 +526,4 @@ func (u *User) Reviews() ([]Review, error) {
 		}
 	}
 	return userReviews, nil
-}
-
-// Helper function
-func strPtr(s string) *string {
-	return &s
 }

@@ -9,6 +9,8 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 )
 
+replace github.com/gburgyan/go-quickgraph => ../go-quickgraph
+
 require (
 	github.com/alecthomas/participle/v2 v2.1.1 // indirect
 	github.com/bytedance/sonic v1.9.1 // indirect
